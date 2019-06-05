@@ -217,7 +217,7 @@ class BanlistPlugin(b3.plugin.Plugin):
                 self.info('@%s %s, ip:%s, guid:%s. Found in whitelist : %s' % (client.id, client.name, client.ip,
                                                                                client.guid, whitelist.name))
                 msg = whitelist.getMessage(client)
-                if msg and msg!="":
+                if msg and msg != "":
                     self.console.write(msg)
                 return
 
@@ -229,7 +229,7 @@ class BanlistPlugin(b3.plugin.Plugin):
                     self.info('kicking @%s %s, ip:%s, guid:%s. Found in banlist : %s' % (client.id, client.name,
                                                                                          client.ip, client.guid, banlist.name))
                     msg = banlist.getMessage(client)
-                    if msg and msg!="":
+                    if msg and msg != "":
                         self.console.write(msg)
                     return
                 else:
@@ -483,11 +483,14 @@ class Banlist(object):
         """
         Return the message with pattern $name replaced with the banlist's name.
         """
-        return self.message.replace('$name','%s' % client.name)\
-            .replace('$ip','%s' % client.ip)\
-            .replace('$guid','%s' % client.guid)\
-            .replace('$pbid','%s' % client.pbid)\
-            .replace('$id','@%s' % client.id)
+        if self.message:
+            return self.message.replace('$name','%s' % client.name)\
+                .replace('$ip','%s' % client.ip)\
+                .replace('$guid','%s' % client.guid)\
+                .replace('$pbid','%s' % client.pbid)\
+                .replace('$id','@%s' % client.id)
+        else:
+            return ""
 
     def getModifiedTime(self):
         """

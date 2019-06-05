@@ -412,7 +412,7 @@ class Iourt43Parser(Iourt41Parser):
                                r'notoriety: (?P<notoriety>.+?) - '
                                r'level: (?P<level>-?\d+?)(?:\s+- (?P<extra>.*))?\s*$', re.MULTILINE)
 
-    ## kill modes
+    ## kill modes (xlr_weaponstats)
     MOD_WATER = '1'
     MOD_LAVA = '3'
     MOD_TELEFRAG = '5'
@@ -455,7 +455,7 @@ class Iourt43Parser(Iourt41Parser):
     UT_MOD_FLAG = '47'
     UT_MOD_GOOMBA = '48'
 
-    # HIT LOCATIONS
+    # HIT LOCATIONS (xlr_bodyparts)
     HL_HEAD = '1'
     HL_HELMET = '2'
     HL_TORSO = '3'

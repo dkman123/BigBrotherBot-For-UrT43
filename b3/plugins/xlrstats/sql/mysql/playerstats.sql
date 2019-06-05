@@ -15,7 +15,8 @@ CREATE TABLE IF NOT EXISTS `%s` (
   `losestreak` SMALLINT(6) NOT NULL DEFAULT '0',
   `rounds` SMALLINT(5) UNSIGNED NOT NULL DEFAULT '0',
   `hide` TINYINT(4) NOT NULL DEFAULT '0',
-  `fixed_name` VARCHAR(32) NOT NULL DEFAULT '',  PRIMARY KEY (`id`),
+  `fixed_name` VARCHAR(32) NOT NULL DEFAULT '',
   `id_token` VARCHAR(10) NOT NULL DEFAULT '',
+  PRIMARY KEY (`id`),
   UNIQUE KEY `client_id` (`client_id`)
 ) ENGINE=MyISAM DEFAULT CHARSET=utf8;
