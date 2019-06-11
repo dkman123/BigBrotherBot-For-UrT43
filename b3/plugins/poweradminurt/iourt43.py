@@ -365,6 +365,7 @@ class Poweradminurt43Plugin(Poweradminurt41Plugin):
         [<gear>] - set the allowed gear on the server
         (You can safely use the command without the 'pa' at the beginning)
         """
+        # self.debug("printgear: cmd = %s; client = %s; data = %s" % (cmd, client, data))
         if not data:
             self.printgear(client=client, cmd=cmd)
             # display help text
@@ -534,6 +535,7 @@ class Poweradminurt43Plugin(Poweradminurt41Plugin):
         """
         Print the current gear in the game chat
         """
+        self.debug("printgear: cmd = %s; gearstr = %s" % (cmd, gearstr))
         if not gearstr:
             # if not explicitly passed get it form the server
             gearstr = self.console.getCvar('g_gear').getString()

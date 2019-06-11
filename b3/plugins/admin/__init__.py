@@ -1060,15 +1060,21 @@ class AdminPlugin(b3.plugin.Plugin):
             pmglobal = False
 
         if pmglobal:
+            # self.debug("warnClient: pmglobal. client %s" % sclient.exactName)
             msg = self.config.getTextTemplate('warn', 'message', warnings=warnings, reason=warning)
             sclient.message(msg)
             if admin:
                 admin.message(msg)
         else:
+            # self.debug("warnClient: NOT pmglobal. client %s" % sclient.exactName)
             self.console.say(self.config.getTextTemplate('warn', 'message', warnings=warnings, reason=warning))
+
         if warnings >= self.warn_instant_kick_num:
+            # self.debug("warnClient: self.warn_instant_kick_num. client %s; warnings %s" % (sclient.exactName, warnings))
             self.warnKick(sclient, admin)
         elif warnings >= self.warn_alert_kick_num:
+            # self.debug("warnClient: self.warn_alert_kick_num. client %s; warnings %s" % (sclient.exactName, warnings))
+
             duration = functions.minutesStr(self.warnKickDuration(sclient))
 
             warn = sclient.lastWarning
@@ -1097,6 +1103,7 @@ class AdminPlugin(b3.plugin.Plugin):
             kick_num = self.config.getint('warn', 'alert_kick_num')
             warnings = sclient.numWarnings
             if warnings >= kick_num:
+                # self.debug("checkWarnKick: client %s; warnings %s" % (sclient.exactName, warnings))
                 self.warnKick(sclient, client, data)
 
     def warnKickDuration(self, sclient):
@@ -1106,15 +1113,31 @@ class AdminPlugin(b3.plugin.Plugin):
         """
         if sclient.numWarnings > self.config.getint('warn', 'tempban_num'):
             duration = self.config.getDuration('warn', 'tempban_duration')
+            # self.debug("warnKickDuration: from tempban_duration. client %s; duration %s" %
+            #            (sclient.exactName, duration))
         else:
-            duration = 0
+            duration = 0.0
             for w in sclient.warnings:
                 duration += w.duration * 60
+            # self.debug("warnKickDuration: from max_duration 1. client %s; duration %s" % (sclient.exactName, duration))
+
             duration = (duration / self.config.getint('warn', 'duration_divider')) / 60
+            # make sure the max isn't 0 or it will never kick
+            if duration < 1:
+                duration = 1
 
             maxDuration = self.config.getDuration('warn', 'max_duration')
+            # make sure the max isn't 0 or it will never kick
+            # if maxDuration < 6:
+            #    maxDuration = 6
             if duration > maxDuration:
                 duration = maxDuration
+
+            # self.debug("warnKickDuration: from max_duration 2. client %s; duration %s; maxDuration %s" %
+            #            (sclient.exactName, duration, maxDuration))
+
+        # self.debug("warnKickDuration: tempban_num %s; duration_divider %s" %
+        #            (self.config.getint('warn', 'tempban_num'), self.config.getint('warn', 'duration_divider')))
 
         return duration
 
@@ -1133,6 +1156,7 @@ class AdminPlugin(b3.plugin.Plugin):
             keyword = warn.keyword
 
         duration = self.warnKickDuration(sclient)
+        # self.debug("warnKick: client %s; duration %s" % (sclient.exactName, duration))
         if duration > 0:
             sclient.tempban(self.config.getTextTemplate('warn', 'reason', reason=msg), keyword,
                             duration, client, False, data)

@@ -187,8 +187,8 @@ class TranslatorPlugin(b3.plugin.Plugin):
             # save for future use
             self.last_message_said.append(message)
             # remove old messages
-            if len(self.last_message) > self.settings['max_history']:
-                self.last_message.pop(0)
+            if len(self.last_message_said) > self.settings['max_history']:
+                self.last_message_said.pop(0)
 
             # we have now to send a translation to all the
             # clients that enabled the automatic translation
