@@ -574,35 +574,6 @@ class DatabaseStorage(Storage):
 
         return group
 
-    def getMapconfig(self, mapconfig):
-        """
-        Return an mapconfig object fetching data from the storage.
-        :param mapconfig: The mapconfig object to fill with fetch data.
-        :return: The mapconfig object given in input with all the fields set.
-        """
-        self.console.debug('Storage: getMapconfig %s' % mapconfig)
-        if hasattr(mapconfig, 'mapname') and mapconfig.mapname:
-            query = QueryBuilder(self.db).SelectQuery('*', 'mapconfig', {'mapname': mapconfig.mapname}, None, 1)
-        else:
-            raise KeyError('no mapname was set %s' % mapconfig)
-
-        cursor = self.query(query)
-        if cursor.EOF:
-            cursor.close()
-            self.debug('no mapconfig found matching %s' % mapconfig.mapname)
-        # raise KeyError('no mapconfig found matching %s' % mapconfig.mapname)
-
-        row = cursor.getOneRow()
-        mapconfig.id = int(row['id'])
-        mapconfig.mapname = row['mapname']
-        mapconfig.capturelimit = int(row['capturelimit'])
-        mapconfig.g_suddendeath = int(row['g_suddendeath'])
-        mapconfig.g_gear = row['g_gear']
-        mapconfig.g_gravity = int(row['g_gravity'])
-        mapconfig.g_friendlyfire = int(row['g_friendlyfire'])
-
-        return mapconfig
-
     def truncateTable(self, table):
         """
         Empty a database table (or a collection of tables)
