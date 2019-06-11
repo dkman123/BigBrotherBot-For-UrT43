@@ -142,7 +142,6 @@ class MapconfigPlugin(b3.plugin.Plugin):
 	    """
 		# self.debug('onNewMap handle %s:"%s"', event.type, event.data)
 		# event.data is a b3.game.Game object
-		self.debug('onNewMap entered')
 		mapName = event.data._get_mapName()
 		self.debug('onNewMap map %s' % mapName)
 		# need to read b3 table to get values
@@ -192,7 +191,7 @@ class MapconfigPlugin(b3.plugin.Plugin):
 	def onEvent(self, event):
 		if (event.type == self.console.getEventID('EVT_GAME_EXIT')) or \
 				(event.type == self.console.getEventID('EVT_GAME_ROUND_END')):
-			self.debug('onEvent')
+			# self.debug('onEvent')
 			nextmap = self.console.getNextMap()
 			if nextmap:
 				ad = "^2Next map: ^3" + nextmap

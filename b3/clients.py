@@ -366,6 +366,13 @@ class Client(object):
 
     # -----------------------
 
+    def getMapconfig(self):
+        return self.console.storage.getMapconfig(self)
+
+    mapconfig = property(getMapconfig)
+
+    # -----------------------
+
     def getattr(self, name, default=None):
         return getattr(self, name, default)
 

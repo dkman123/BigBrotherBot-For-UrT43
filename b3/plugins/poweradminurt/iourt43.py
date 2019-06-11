@@ -535,7 +535,7 @@ class Poweradminurt43Plugin(Poweradminurt41Plugin):
         """
         Print the current gear in the game chat
         """
-        self.debug("printgear: cmd = %s; gearstr = %s" % (cmd, gearstr))
+        # self.debug("printgear: cmd = %s; gearstr = %s" % (cmd, gearstr))
         if not gearstr:
             # if not explicitly passed get it form the server
             gearstr = self.console.getCvar('g_gear').getString()
