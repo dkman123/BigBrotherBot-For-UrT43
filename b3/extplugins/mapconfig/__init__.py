@@ -31,16 +31,18 @@ __author__ = 'isopropanol'
 # from b3.clients import Client
 # import b3.events
 import b3.plugin
+import os
+import platform
 
 # from b3 import functions
 # from b3.clients import Client
-# from b3.functions import getCmd
+from b3.functions import getCmd
 from ConfigParser import NoOptionError
 
 class MapconfigPlugin(b3.plugin.Plugin):
 	# requiresConfigFile = False
 
-	adminPlugin = None
+	_adminPlugin = None
 	powerAdminUrtPlugin = None
 
 	requiresParsers = ['iourt42', 'iourt43']
@@ -54,6 +56,11 @@ class MapconfigPlugin(b3.plugin.Plugin):
 	default_g_gear = 0
 	default_g_gravity = 800
 	default_g_friendlyfire = 2
+	mapcycle_fileName = ""
+	# last modified timestamp
+	mapcycle_timestamp = 0
+	# the mapcycle as a string
+	mapcycle = ""
 
 	####################################################################################################################
 	#                                                                                                                  #
@@ -66,21 +73,21 @@ class MapconfigPlugin(b3.plugin.Plugin):
 		startup the plugin
 		"""
 		# get the admin plugin so we can register commands
-		self.adminPlugin = self.console.getPlugin('admin')
+		self._adminPlugin = self.console.getPlugin('admin')
 		self.powerAdminUrtPlugin = self.console.getPlugin('powerAdminUrtPlugin')
 
 		# register our commands
-		#if 'commands' in self.config.sections():
-		#	for cmd in self.config.options('commands'):
-		#		level = self.config.get('commands', cmd)
-		#		sp = cmd.split('-')
-		#		alias = None
-		#		if len(sp) == 2:
-		#			cmd, alias = sp
-		#
-		#		func = getCmd(self, cmd)
-		#		if func:
-		#			self._adminPlugin.registerCommand(self, cmd, level, func, alias)
+		if 'commands' in self.config.sections():
+			for cmd in self.config.options('commands'):
+				level = self.config.get('commands', cmd)
+				sp = cmd.split('-')
+				alias = None
+				if len(sp) == 2:
+					cmd, alias = sp
+
+				func = getCmd(self, cmd)
+				if func:
+					self._adminPlugin.registerCommand(self, cmd, level, func, alias)
 
 		self.registerEvent('EVT_GAME_ROUND_START', self.onNewMap)
 		self.registerEvent('EVT_GAME_EXIT')
@@ -96,28 +103,28 @@ class MapconfigPlugin(b3.plugin.Plugin):
 		"""
 		# NOTE: if you add fields then add them here
 		try:
-			self.default_capturelimit = self.config.getint('global_settings', 'default_capturelimit')
+			self.default_capturelimit = self.config.getint('settings', 'default_capturelimit')
 		except (NoOptionError, ValueError):
 			self.default_capturelimit = 8
 
 		self.debug('default_capturelimit : %s' % self.default_capturelimit)
 
 		try:
-			self.default_g_suddendeath = self.config.getint('global_settings', 'default_g_suddendeath')
+			self.default_g_suddendeath = self.config.getint('settings', 'default_g_suddendeath')
 		except (NoOptionError, ValueError):
 			self.default_g_suddendeath = 0
 
 		self.debug('default_g_suddendeath : %s' % self.default_g_suddendeath)
 
 		try:
-			self.default_g_gear = self.config.getint('global_settings', 'default_g_gear')
+			self.default_g_gear = self.config.getint('settings', 'default_g_gear')
 		except (NoOptionError, ValueError):
 			self.default_g_gear = "0"
 
 		self.debug('default_g_gear : %s' % self.default_g_gear)
 
 		try:
-			self.default_g_gravity = self.config.getint('global_settings', 'default_g_gravity')
+			self.default_g_gravity = self.config.getint('settings', 'default_g_gravity')
 		except (NoOptionError, ValueError):
 			self.default_g_gravity = 800
 
@@ -129,6 +136,15 @@ class MapconfigPlugin(b3.plugin.Plugin):
 			self.default_g_friendlyfire = 0
 
 		self.debug('default_g_friendlyfire : %s' % self.default_g_friendlyfire)
+
+		try:
+			self.mapcycle_fileName = self.config.get('settings', 'mapcycle_fileName')
+		except (NoOptionError, ValueError):
+			self.mapcycle_fileName = ""
+
+		self.debug('mapcycle_fileName : %s' % self.mapcycle_fileName)
+
+		self.mapcycle = ""
 
 	####################################################################################################################
 	#                                                                                                                  #
@@ -143,50 +159,7 @@ class MapconfigPlugin(b3.plugin.Plugin):
 		# self.debug('onNewMap handle %s:"%s"', event.type, event.data)
 		# event.data is a b3.game.Game object
 		mapName = event.data._get_mapName()
-		self.debug('onNewMap map %s' % mapName)
-		# need to read b3 table to get values
-
-		# NOTE: if you add fields then add them here
-		mapconfig = {"id": 0, \
-					 "mapname": mapName, \
-					 "capturelimit": self.default_capturelimit, \
-					 "g_suddendeath": self.default_g_suddendeath, \
-					 "g_gear": self.default_g_gear, \
-					 "g_gravity": self.default_g_gravity, \
-					 "g_friendlyfire": self.default_g_friendlyfire }
-
-		mapconfig = self.getMapconfig(mapconfig)
-		# if mapconfig["id"] > 0:
-		# then rcon to set game values
-		# self.debug('setting capturelimit %s, g_gear %s' % (mapconfig["capturelimit"], mapconfig["g_gear"]))
-
-		# NOTE: if you add fields then add them here
-		self.console.write('capturelimit %s ' % (mapconfig["capturelimit"]))
-		self.console.write('g_suddendeath %s ' % (mapconfig["g_suddendeath"]))
-		self.console.write('g_gear "%s" ' % (mapconfig["g_gear"]))
-		self.console.write('g_gravity %s ' % (mapconfig["g_gravity"]))
-		self.console.write('g_friendlyfire %s ' % (mapconfig["g_friendlyfire"]))
-		# self.debug('onNewMap updated successfully')
-
-		# I want to have it perform an @gear command if gear limits are on
-		# if mapconfig["g_gear"] != "0":
-		self.debug("sending gear cmd")
-		# these say it but don't "process" it
-		# self.console.say("@pagear")
-		# self.console.write('@pagear')
-
-		# these don't work
-		# self.console.sayLoudOrPM(None, "@pagear")
-		# self.console.cmd_pagear(data=None)
-			# client2 = Client()
-			# client2.id = 1
-			# client2 = self.console.storage.getClient(client2)
-			# self.powerAdminUrtPlugin.cmd_pagear(data=None, client=client2, cmd="Command<pagear>")
-
-		# command = self.adminPlugin._commands['admins']
-		# command.executeLoud(data=None, client=None)
-		# command = functions.getCmd(self.powerAdminUrtPlugin, "pagear")
-		# command.executeLoud(data=None, client=None)
+		self.setMapSettings(mapName)
 
 	def onEvent(self, event):
 		if (event.type == self.console.getEventID('EVT_GAME_EXIT')) or \
@@ -238,29 +211,118 @@ class MapconfigPlugin(b3.plugin.Plugin):
 	
 		return mapconfig
 
+	def setMapSettings(self, mapName):
+		"""
+		Sends the rcon commands to set the settings
+		:param mapName: the map name (without extension)
+		:return:
+		"""
+		self.debug('onNewMap map %s' % mapName)
+		# need to read b3 table to get values
+
+		# NOTE: if you add fields then add them here
+		mapconfig = {"id": 0, \
+					 "mapname": mapName, \
+					 "capturelimit": self.default_capturelimit, \
+					 "g_suddendeath": self.default_g_suddendeath, \
+					 "g_gear": self.default_g_gear, \
+					 "g_gravity": self.default_g_gravity, \
+					 "g_friendlyfire": self.default_g_friendlyfire }
+
+		mapconfig = self.getMapconfig(mapconfig)
+		# if mapconfig["id"] > 0:
+		# then rcon to set game values
+		# self.debug('setting capturelimit %s, g_gear %s' % (mapconfig["capturelimit"], mapconfig["g_gear"]))
+
+		# NOTE: if you add fields then add them here
+		self.console.write('capturelimit %s ' % (mapconfig["capturelimit"]))
+		self.console.write('g_suddendeath %s ' % (mapconfig["g_suddendeath"]))
+		self.console.write('g_gear "%s" ' % (mapconfig["g_gear"]))
+		self.console.write('g_gravity %s ' % (mapconfig["g_gravity"]))
+		self.console.write('g_friendlyfire %s ' % (mapconfig["g_friendlyfire"]))
+		# self.debug('onNewMap updated successfully')
+
+		# I want to have it perform an @gear command if gear limits are on
+		# if mapconfig["g_gear"] != "0":
+		self.debug("sending gear cmd")
+		# these say it but don't "process" it
+		# self.console.say("@pagear")
+		# self.console.write('@pagear')
+
+		# these don't work
+		# self.console.sayLoudOrPM(None, "@pagear")
+		# self.console.cmd_pagear(data=None)
+			# client2 = Client()
+			# client2.id = 1
+			# client2 = self.console.storage.getClient(client2)
+			# self.powerAdminUrtPlugin.cmd_pagear(data=None, client=client2, cmd="Command<pagear>")
+
+		# command = self._adminPlugin._commands['admins']
+		# command.executeLoud(data=None, client=None)
+		# command = functions.getCmd(self.powerAdminUrtPlugin, "pagear")
+		# command.executeLoud(data=None, client=None)
+
 	####################################################################################################################
 	#                                                                                                                  #
 	#    COMMANDS                                                                                                      #
 	#                                                                                                                  #
 	####################################################################################################################
 
-	# def cmd_dosomething(self, data=None, client=None, cmd=None):
-	#	if not data:
-	#		client.message('^7invalid data, try !help dosomething')
-	#		return
-	#
-	#	sclient = self._adminPlugin.findClientPrompt(data, client)
-	#
-	#	if not sclient:
-	#		# a player matching the name was not found, a list of closest matches will be displayed
-	#		# we can exit here and the user will retry with a more specific player
-	#		return
-	#
-	#	# TODO check immunity level
-	#	#if sclient.
-	#
-	#	# -- IPHub
-	#
-	#	cmd.sayLoudOrPM(client, 'dosomething %s' % (sclient.cid))
+	def cmd_mapconfig(self):
+		# , data=None, client=None, cmd=None
+		# if not data:
+		# 	client.message('^7invalid data, try !help mapconfig')
+		# 	return
+
+		# sclient = self._adminPlugin.findClientPrompt(data, client)
+
+		# if not sclient:
+		#	# a player matching the name was not found, a list of closest matches will be displayed
+		#	# we can exit here and the user will retry with a more specific player
+		# 	return
+
+		# TODO check immunity level
+		# if sclient.
+
+		# cmd.sayLoudOrPM(client, 'dosomething %s' % (sclient.cid))
+		mapName = self.game.mapName
+		self.debug("map name is %s" % mapName)
+		self.setMapSettings(mapName)
+
+	def cmd_maplist(self, data=None, client=None, cmd=None):
+		self.debug("maplist entered")
+
+		if not self.mapcycle_fileName or self.mapcycle_fileName == "":
+			cmd.sayLoudOrPM(client, '^7MapCycle path not set in ini file.')
+			return
+
+		# sclient = self._adminPlugin.findClientPrompt(data, client)
+		#
+		# if not data:
+		# 	client.message('^7invalid data, try !help maplist')
+		# 	return
+		#
+		# if not sclient:
+		# 	# a player matching the name was not found, a list of closest matches will be displayed
+		# 	# we can exit here and the user will retry with a more specific player
+		# 	return
+
+		# TODO: hold an internal list with a timestamp so we don't read the file too often
+
+		#if platform.system()
+		file_timestamp = os.path.getmtime(self.mapcycle_fileName)
+		self.debug("maplist: timestamp is %s" % file_timestamp)
+
+		if self.mapcycle_timestamp != file_timestamp:
+			# we need to read the file, because we haven't yet or they've changed
+			self.debug("maplist: reading mapcycle")
+			self.mapcycle = [line.rstrip('\n') for line in open(self.mapcycle_fileName)]
+			self.mapcycle_timestamp = file_timestamp
+
+		if self.mapcycle:
+			cmd.sayLoudOrPM(client, '^7MapList: ^2%s' % '^7, ^2'.join(self.mapcycle))
+		else:
+			cmd.sayLoudOrPM(client, '^7MapList not found')
+
 
 

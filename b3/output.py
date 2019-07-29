@@ -31,10 +31,22 @@ import logging
 from logging import handlers
 from logging import CRITICAL, ERROR, INFO, WARNING, DEBUG
 
+# log_level is set in the b3.distribution(.ini|.xml)
+
 CONSOLE = 22
 BOT = 21
 VERBOSE = 9
 VERBOSE2 = 8
+
+# from logging:
+# CRITICAL = 50
+# FATAL = CRITICAL
+# ERROR = 40
+# WARNING = 30
+# WARN = WARNING
+# INFO = 20
+# DEBUG = 10
+# NOTSET = 0
 
 logging.addLevelName(CRITICAL, 'CRITICAL')
 logging.addLevelName(ERROR,    'ERROR   ')
