@@ -268,7 +268,7 @@ class MapconfigPlugin(b3.plugin.Plugin):
 	#                                                                                                                  #
 	####################################################################################################################
 
-	def cmd_mapconfig(self):
+	def cmd_mapconfig(self, data=None, client=None, cmd=None):
 		# , data=None, client=None, cmd=None
 		# if not data:
 		# 	client.message('^7invalid data, try !help mapconfig')
@@ -285,7 +285,8 @@ class MapconfigPlugin(b3.plugin.Plugin):
 		# if sclient.
 
 		# cmd.sayLoudOrPM(client, 'dosomething %s' % (sclient.cid))
-		mapName = self.game.mapName
+		mapName = self.console.getMap()
+		# mapName = b3.game.getMap()
 		self.debug("map name is %s" % mapName)
 		self.setMapSettings(mapName)
 
@@ -307,8 +308,6 @@ class MapconfigPlugin(b3.plugin.Plugin):
 		# 	# we can exit here and the user will retry with a more specific player
 		# 	return
 
-		# TODO: hold an internal list with a timestamp so we don't read the file too often
-
 		#if platform.system()
 		file_timestamp = os.path.getmtime(self.mapcycle_fileName)
 		self.debug("maplist: timestamp is %s" % file_timestamp)
@@ -323,6 +322,4 @@ class MapconfigPlugin(b3.plugin.Plugin):
 			cmd.sayLoudOrPM(client, '^7MapList: ^2%s' % '^7, ^2'.join(self.mapcycle))
 		else:
 			cmd.sayLoudOrPM(client, '^7MapList not found')
-
-
 
