@@ -25,6 +25,8 @@
 __version__ = '1.35'
 __author__ = 'ThorN, xlr8or, Courgette, Ozon, Fenix'
 
+# 2019.08.02 add get_clients
+
 import re
 import time
 import threading
@@ -1191,6 +1193,9 @@ class AdminPlugin(b3.plugin.Plugin):
                     time.sleep(1)
         except Exception, err:
             self.error(err)
+
+    def get_clients(self):
+        return self.console.clients.getList()
 
     ####################################################################################################################
     #                                                                                                                  #

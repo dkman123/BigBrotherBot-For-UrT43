@@ -22,6 +22,8 @@
 #                                                                     #
 # ################################################################### #
 
+# 2019.08.02 add pamuteall, pamuteall_under_level config setting
+
 import b3
 import b3.config
 import b3.events
@@ -37,6 +39,7 @@ import string
 
 from b3.functions import getCmd
 from b3.functions import clamp
+from b3.functions import time2minutes
 from . import __version__
 from . import __author__
 
@@ -128,6 +131,7 @@ class Poweradminurt41Plugin(b3.plugin.Plugin):
     _full_ident_level = 60
     _killhistory = []
     _hitlocations = {}
+    _muteall_under_level = 20
 
     # Fenix: round based gametypes are not supposed to teambalance midround
     # NOTE: skill balancing override teams balancing (since it should "balance more"
@@ -451,6 +455,7 @@ class Poweradminurt41Plugin(b3.plugin.Plugin):
         """
         self._slapSafeLevel = self.getSetting('special', 'slap_safe_level', b3.LEVEL, self._slapSafeLevel)
         self._full_ident_level = self.getSetting('special', 'paident_full_level', b3.LEVEL, self._full_ident_level)
+        self._muteall_under_level = self.getSetting('special', 'pamuteall_under_level', b3.LEVEL, self._muteall_under_level)
 
     def installCrontabs(self):
         """
@@ -1510,6 +1515,33 @@ class Poweradminurt41Plugin(b3.plugin.Plugin):
 
         # are we still here? Let's write it to console
         self.console.write('mute %s %s' % (sclient.cid, duration))
+
+    def cmd_pamuteall(self, data, client, cmd=None):
+        """
+        <player> <duration> - Mute all players for duration seconds. 0 to unmute.
+        (You can safely use the command without the 'pa' at the beginning)
+        """
+        # set default duration (in seconds)
+        duration = "180"
+        # this will get the duration maybe?
+        args = self._adminPlugin.parseUserCmd(data)
+        if args:
+            if args[0] is not None and re.match('^([0-9]+)[m]*\s*$', args[0]):
+                if "m" in args[0]:
+                    duration = int(time2minutes(args[0]) * 60)
+                else:
+                    duration = int(args[0])
+        else:
+            # client.message('^7Invalid data, try !help pamuteall')
+            # return
+            pass
+
+        # foreach client ...
+        for sclient in self._adminPlugin.get_clients():
+            if sclient.maxLevel < self._muteall_under_level:
+                self.debug("muting %s" % sclient.name)
+                # Let's write the command to rcon
+                self.console.write('mute %s %s' % (sclient.cid, duration))
 
     def cmd_papause(self, data, client, cmd=None):
         """
