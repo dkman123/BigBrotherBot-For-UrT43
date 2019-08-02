@@ -1210,7 +1210,8 @@ class Parser(object):
                 self.debug('%s: unregister event <%s>', event_handler.__class__.__name__, self.getEventName(event_name))
                 self._handlers[event_name].remove(event_handler)
 
-    def queueEvent(self, event, expire=10):
+    def queueEvent(self, event, expire=30):
+        # DK changed from 10 to 30 as a test
         """
         QueEvents.gevent for processing.
         """
