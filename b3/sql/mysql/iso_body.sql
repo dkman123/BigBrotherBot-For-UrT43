@@ -22,5 +22,5 @@ INSERT INTO `iso_body` (id, description) VALUES ('13', 'LEFT FOOT');
 INSERT INTO `iso_body` (id, description) VALUES ('14', 'RIGHT FOOT');
 
 
---UPDATE `iso_body` SET description = 'LEFT UPPER LEG' WHERE id = '9';
---UPDATE `iso_body` SET description = 'RIGHT UPPER LEG' WHERE id = '10';
+-- UPDATE `iso_body` SET description = 'LEFT UPPER LEG' WHERE id = '9';
+-- UPDATE `iso_body` SET description = 'RIGHT UPPER LEG' WHERE id = '10';
