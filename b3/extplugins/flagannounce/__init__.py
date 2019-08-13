@@ -36,11 +36,14 @@ class FlagannouncePlugin(b3.plugin.Plugin):
     # requiresConfigFile = True
     # requiresPlugins = ['admin']
     _adminPlugin = None
+    _poweradminPlugin = None
     _immunity_level = None
     _red_score = 0
     _blue_score = 0
     _has_red = ""
     _has_blue = ""
+    _shuffle_score_diff = 0
+    _warmup = False
 
     ####################################################################################################################
     #                                                                                                                  #
@@ -54,6 +57,7 @@ class FlagannouncePlugin(b3.plugin.Plugin):
         """
         # get the admin plugin so we can register commands
         self._adminPlugin = self.console.getPlugin('admin')
+        self._poweradminPlugin = self.console.getPlugin('poweradminurt')
 
         # register our commands
         # if 'commands' in self.config.sections():
@@ -71,6 +75,20 @@ class FlagannouncePlugin(b3.plugin.Plugin):
         self.registerEvent('EVT_CLIENT_ACTION', self.onAction)
         self.registerEvent('EVT_GAME_ROUND_START', self.onNewMap)
 
+    def onLoadConfig(self):
+        """
+        load plugin configuration
+        """
+        try:
+            self._shuffle_score_diff = self.config.getint('settings', 'shuffle_score_diff')
+            self.debug('loaded settings/shuffle_score_diff: %s' % self._shuffle_score_diff)
+        except NoOptionError:
+            self.warning('could not find settings/shuffle_score_diff in config file, '
+                         'using default: %s' % self._shuffle_score_diff)
+        except KeyError, e:
+            self.error('could not load settings/shuffle_score_diff config value: %s' % e)
+            self.debug('using default value (%s) for settings/shuffle_score_diff' % self._shuffle_score_diff)
+
     ####################################################################################################################
     #                                                                                                                  #
     #   EVENTS                                                                                                         #
@@ -85,7 +103,7 @@ class FlagannouncePlugin(b3.plugin.Plugin):
         # cname = event.client.name
         # if not cname:
         #     cname = "none?"
-        # self.debug("FlagAnnc: %s by %s" % (edata, cname))
+        # self.debug("FlagAnnounce: %s by %s" % (edata, cname))
 
         # think of it as "flag captured at COLOR:
         if event.data == 'team_CTF_redflag':
@@ -95,6 +113,7 @@ class FlagannouncePlugin(b3.plugin.Plugin):
             self._has_blue = event.client.name
             # self.debug("DK: _has_blue %s" % self._has_blue)
         if event.data in 'flag_captured':
+            self._warmup = True
             # self.debug("DK: name: %s; has_blue %s; has_red %s" % (event.client.name, self._has_blue, self._has_red))
             caplimit = self.console.getCvar('capturelimit').getInt()
             if event.client.name == self._has_blue:
@@ -116,10 +135,24 @@ class FlagannouncePlugin(b3.plugin.Plugin):
         """
         Handle EVT_GAME_ROUND_START
         """
-        self._red_score = 0
-        self._blue_score = 0
-        self._has_red = ""
-        self._has_blue = ""
+        # self.debug("DK: shuffle diff %s; actual diff %s; (red %s; blue %s)" % (self._shuffle_score_diff, abs(self._red_score - self._blue_score), self._red_score, self._blue_score))
+
+        if self._warmup:
+            # this catches the original map load
+            self._warmup = False
+        else:
+            # this runs after warmup ends
+
+            # shuffle if the score difference is set and the difference is at least that value
+            if self._shuffle_score_diff > 0 and abs(self._red_score - self._blue_score) >= self._shuffle_score_diff:
+                self.debug("FlagAnnounce: shuffling due to last map cap difference %s >= %s" % (abs(self._red_score - self._blue_score), self._shuffle_score_diff))
+                # do i need to start a new thread and wait 30 seconds first?
+                self._poweradminPlugin.cmd_paskuffle()
+
+            self._red_score = 0
+            self._blue_score = 0
+            self._has_red = ""
+            self._has_blue = ""
 
     ####################################################################################################################
     #                                                                                                                  #
