@@ -43,6 +43,8 @@ class FlagannouncePlugin(b3.plugin.Plugin):
     _has_red = ""
     _has_blue = ""
     _shuffle_score_diff = 0
+    _shuffle_now_diff = 0
+    _shuffle_now_map = ""
     _warmup = False
 
     ####################################################################################################################
@@ -89,6 +91,16 @@ class FlagannouncePlugin(b3.plugin.Plugin):
             self.error('could not load settings/shuffle_score_diff config value: %s' % e)
             self.debug('using default value (%s) for settings/shuffle_score_diff' % self._shuffle_score_diff)
 
+        try:
+            self._shuffle_now_diff = self.config.getint('settings', 'shuffle_now_diff')
+            self.debug('loaded settings/shuffle_now_diff: %s' % self._shuffle_now_diff)
+        except NoOptionError:
+            self.warning('could not find settings/shuffle_now_diff in config file, '
+                         'using default: %s' % self._shuffle_now_diff)
+        except KeyError, e:
+            self.error('could not load settings/shuffle_now_diff config value: %s' % e)
+            self.debug('using default value (%s) for settings/shuffle_now_diff' % self._shuffle_now_diff)
+
     ####################################################################################################################
     #                                                                                                                  #
     #   EVENTS                                                                                                         #
@@ -130,6 +142,12 @@ class FlagannouncePlugin(b3.plugin.Plugin):
             # self.debug("DK: FlagAnnounce Red: %s; Blue: %s" % (self._red_score, self._blue_score))
 
         # self.debug("DK: FlagAnnounce %s Red: %s by has_blue %s; Blue: %s by has_red %s" % (event.data, self._red_score, self._has_blue, self._blue_score, self._has_red))
+        if (self._shuffle_now_diff > 0 and self._shuffle_now_diff == abs(self._red_score - self._blue_score)):
+            mapName = self.console.getMap()
+            if (mapName != self._shuffle_now_map):
+                self.debug("Running shuffle now")
+                self._shuffle_now_map = mapName
+                self._poweradminPlugin.cmd_paskuffle()
 
     def onNewMap(self, event):
         """

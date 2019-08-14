@@ -62,6 +62,11 @@ class MapconfigPlugin(b3.plugin.Plugin):
 	# the mapcycle as a string
 	mapcycle = ""
 
+	# variables held to reduce processing overhead
+	_up_mapname = ""
+	_up_nextmap = ""
+	_up_next3 = ""
+
 	####################################################################################################################
 	#                                                                                                                  #
 	#    STARTUP                                                                                                       #
@@ -165,10 +170,13 @@ class MapconfigPlugin(b3.plugin.Plugin):
 		if (event.type == self.console.getEventID('EVT_GAME_EXIT')) or \
 				(event.type == self.console.getEventID('EVT_GAME_ROUND_END')):
 			# self.debug('onEvent')
-			nextmap = self.console.getNextMap()
-			if nextmap:
-				ad = "^2Next map: ^3" + nextmap
-				self.console.say(ad)
+			if self.mapcycle_fileName:
+				self.cmd_upcoming(self)
+			else:
+				nextmap = self.console.getNextMap()
+				if nextmap:
+					ad = "^2Next map: ^3" + nextmap
+					self.console.say(ad)
 
 	####################################################################################################################
 	#                                                                                                                  #
@@ -322,4 +330,93 @@ class MapconfigPlugin(b3.plugin.Plugin):
 			cmd.sayLoudOrPM(client, '^7MapList: ^2%s' % '^7, ^2'.join(self.mapcycle))
 		else:
 			cmd.sayLoudOrPM(client, '^7MapList not found')
+
+	def getNextMaps(self, g_nextmap):
+		nummaps = len(self.mapcycle)
+		try:
+			idx = self.mapcycle.index(g_nextmap)
+		except ValueError:
+			idx = -1
+		idx += 2
+		self.debug("nextmap: %s; idx: %s; nummaps: %s" % (g_nextmap, idx, nummaps))
+		self.debug("cycle is %s" % self.mapcycle)
+		if idx <= nummaps:
+			g_nextmap2 = self.mapcycle[idx - 1]
+		else:
+			idx = 1
+			g_nextmap2 = self.mapcycle[idx - 1]
+
+		idx += 1
+		if idx <= nummaps:
+			g_nextmap3 = self.mapcycle[idx - 1]
+		else:
+			idx = 1
+			g_nextmap3 = self.mapcycle[idx - 1]
+		return g_nextmap2, g_nextmap3
+
+	def cmd_upcoming(self, data=None, client=None, cmd=None):
+		# self.debug("upcoming entered")
+
+		if not self.mapcycle_fileName or self.mapcycle_fileName == "":
+			cmd.sayLoudOrPM(client, '^7MapCycle path not set in ini file.')
+			return
+
+		# sclient = self._adminPlugin.findClientPrompt(data, client)
+		#
+		# if not data:
+		# 	client.message('^7invalid data, try !help maplist')
+		# 	return
+		#
+		# if not sclient:
+		# 	# a player matching the name was not found, a list of closest matches will be displayed
+		# 	# we can exit here and the user will retry with a more specific player
+		# 	return
+
+		mapname = self.console.getMap()
+		g_nextmap = self.console.getNextMap()
+
+		# if nothing changed, just cough up the last string
+		if (mapname == self._up_mapname and g_nextmap == self._up_nextmap):
+			self.console.say(self._up_next3)
+			self.debug("nothing changed")
+			return
+
+		file_timestamp = os.path.getmtime(self.mapcycle_fileName)
+		self.debug("upcoming: timestamp is %s" % file_timestamp)
+
+		if self.mapcycle_timestamp != file_timestamp:
+			# we need to read the file, because we haven't yet or they've changed
+			self.debug("upcoming: reading mapcycle")
+			self.mapcycle = [line.rstrip('\n').rstrip('\r') for line in open(self.mapcycle_fileName)]
+			self.mapcycle_timestamp = file_timestamp
+
+		nummaps = len(self.mapcycle)
+
+		# i believe that g_nextmap will always have a value here because b3 looks at server var g_nextmap and g_nextcyclemap
+		if g_nextmap:
+			g_nextmap1 = g_nextmap
+			self.debug("g_nextmap is set: %s" % g_nextmap)
+			pass
+		elif mapname in self.mapcycle:
+			self.debug("mapname in cycle")
+			idx = self.mapcycle.index(mapname)
+			idx += 1
+			if idx < nummaps:
+				g_nextmap1 = self.mapcycle[idx]
+			else:
+				g_nextmap1 = self.mapcycle[0]
+		else:
+			self.debug("flowed to else, using start of mapcycle")
+			g_nextmap1 = self.mapcycle[0]
+
+		g_nextmap2, g_nextmap3 = self.getNextMaps(g_nextmap1)
+
+		if self.mapcycle:
+			# hold the string so we don't need to reprocess unless something changed
+			self._up_mapname = mapname
+			self._up_nextmap = g_nextmap1
+			self._up_next3 = '^7Upcoming: ^2%s^7, ^2%s^7, ^2%s' % (g_nextmap1, g_nextmap2, g_nextmap3)
+			self.console.say(self._up_next3)
+		else:
+			cmd.sayLoudOrPM(client, '^7Upcoming not found')
 
