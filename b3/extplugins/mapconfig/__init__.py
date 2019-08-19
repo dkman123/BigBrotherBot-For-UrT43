@@ -56,6 +56,8 @@ class MapconfigPlugin(b3.plugin.Plugin):
 	default_g_gear = 0
 	default_g_gravity = 800
 	default_g_friendlyfire = 2
+	default_startmessage = ""
+
 	mapcycle_fileName = ""
 	# last modified timestamp
 	mapcycle_timestamp = 0
@@ -136,11 +138,18 @@ class MapconfigPlugin(b3.plugin.Plugin):
 		self.debug('default_g_gravity : %s' % self.default_g_gravity)
 
 		try:
-			self.default_g_friendlyfire = self.config.getint('global_settings', 'default_g_friendlyfire')
+			self.default_g_friendlyfire = self.config.getint('settings', 'default_g_friendlyfire')
 		except (NoOptionError, ValueError):
 			self.default_g_friendlyfire = 0
 
 		self.debug('default_g_friendlyfire : %s' % self.default_g_friendlyfire)
+
+		try:
+			self.default_startmessage = self.config.get('settings', 'default_startmessage')
+		except (NoOptionError, ValueError):
+			self.default_startmessage = ""
+
+		self.debug('default_startmessage : %s' % self.default_startmessage)
 
 		try:
 			self.mapcycle_fileName = self.config.get('settings', 'mapcycle_fileName')
@@ -216,6 +225,7 @@ class MapconfigPlugin(b3.plugin.Plugin):
 		mapconfig["g_gear"] = row['g_gear']
 		mapconfig["g_gravity"] = int(row['g_gravity'])
 		mapconfig["g_friendlyfire"] = int(row['g_friendlyfire'])
+		mapconfig["startmessage"] = row['startmessage']
 	
 		return mapconfig
 
@@ -235,7 +245,8 @@ class MapconfigPlugin(b3.plugin.Plugin):
 					 "g_suddendeath": self.default_g_suddendeath, \
 					 "g_gear": self.default_g_gear, \
 					 "g_gravity": self.default_g_gravity, \
-					 "g_friendlyfire": self.default_g_friendlyfire }
+					 "g_friendlyfire": self.default_g_friendlyfire, \
+					 "startmessage": self.default_startmessage }
 
 		mapconfig = self.getMapconfig(mapconfig)
 		# if mapconfig["id"] > 0:
@@ -248,11 +259,13 @@ class MapconfigPlugin(b3.plugin.Plugin):
 		self.console.write('g_gear "%s" ' % (mapconfig["g_gear"]))
 		self.console.write('g_gravity %s ' % (mapconfig["g_gravity"]))
 		self.console.write('g_friendlyfire %s ' % (mapconfig["g_friendlyfire"]))
+		if mapconfig["startmessage"] and mapconfig["startmessage"] != "":
+			self.console.say('Map Start Message: ^8%s' % (mapconfig["startmessage"]))
 		# self.debug('onNewMap updated successfully')
 
 		# I want to have it perform an @gear command if gear limits are on
 		# if mapconfig["g_gear"] != "0":
-		self.debug("sending gear cmd")
+		# self.debug("sending gear cmd")
 		# these say it but don't "process" it
 		# self.console.say("@pagear")
 		# self.console.write('@pagear')
