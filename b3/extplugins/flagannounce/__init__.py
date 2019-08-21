@@ -28,9 +28,11 @@ __author__  = 'isopropanol'
 import b3
 import b3.events
 import b3.plugin
+import datetime
 
-# from b3.functions import getCmd
+from b3.functions import getCmd
 from ConfigParser import NoOptionError
+from b3.storage import mapresult
 
 class FlagannouncePlugin(b3.plugin.Plugin):
     # requiresConfigFile = True
@@ -46,6 +48,9 @@ class FlagannouncePlugin(b3.plugin.Plugin):
     _shuffle_now_diff = 0
     _shuffle_now_map = ""
     _warmup = False
+    _capture_map_results = False
+    _mapname = ""
+    _start_time = None
 
     ####################################################################################################################
     #                                                                                                                  #
@@ -62,20 +67,22 @@ class FlagannouncePlugin(b3.plugin.Plugin):
         self._poweradminPlugin = self.console.getPlugin('poweradminurt')
 
         # register our commands
-        # if 'commands' in self.config.sections():
-        #    for cmd in self.config.options('commands'):
-        #        level = self.config.get('commands', cmd)
-        #        sp = cmd.split('-')
-        #        alias = None
-        #        if len(sp) == 2:
-        #            cmd, alias = sp
-        #
-        #        func = getCmd(self, cmd)
-        #        if func:
-        #            self._adminPlugin.registerCommand(self, cmd, level, func, alias)
+        if 'commands' in self.config.sections():
+           for cmd in self.config.options('commands'):
+               level = self.config.get('commands', cmd)
+               sp = cmd.split('-')
+               alias = None
+               if len(sp) == 2:
+                   cmd, alias = sp
+
+               func = getCmd(self, cmd)
+               if func:
+                   self._adminPlugin.registerCommand(self, cmd, level, func, alias)
 
         self.registerEvent('EVT_CLIENT_ACTION', self.onAction)
         self.registerEvent('EVT_GAME_ROUND_START', self.onNewMap)
+        self.registerEvent('EVT_GAME_ROUND_END')
+        self.registerEvent('EVT_GAME_EXIT')
 
     def onLoadConfig(self):
         """
@@ -100,6 +107,16 @@ class FlagannouncePlugin(b3.plugin.Plugin):
         except KeyError, e:
             self.error('could not load settings/shuffle_now_diff config value: %s' % e)
             self.debug('using default value (%s) for settings/shuffle_now_diff' % self._shuffle_now_diff)
+
+        try:
+            self._capture_map_results = self.getSetting('settings', 'capture_map_results', b3.BOOL, self._capture_map_results)
+            self.debug('loaded settings/capture_map_results: %s' % self._capture_map_results)
+        except NoOptionError:
+            self.warning('could not find settings/capture_map_results in config file, '
+                         'using default: %s' % self._capture_map_results)
+        except KeyError, e:
+            self.error('could not load settings/capture_map_results config value: %s' % e)
+            self.debug('using default value (%s) for settings/capture_map_results' % self._capture_map_results)
 
     ####################################################################################################################
     #                                                                                                                  #
@@ -139,9 +156,9 @@ class FlagannouncePlugin(b3.plugin.Plugin):
                 if caplimit - self._blue_score > 0:
                     self.console.say(self.getMessage('blue_flags_to_limit', (caplimit - self._blue_score)))
 
-            # self.debug("DK: FlagAnnounce Red: %s; Blue: %s" % (self._red_score, self._blue_score))
+            self.debug("DK: FlagAnnounce Red: %s; Blue: %s" % (self._red_score, self._blue_score))
 
-        # self.debug("DK: FlagAnnounce %s Red: %s by has_blue %s; Blue: %s by has_red %s" % (event.data, self._red_score, self._has_blue, self._blue_score, self._has_red))
+        # self.debug("FlagAnnounce %s Red: %s by has_blue %s; Blue: %s by has_red %s" % (event.data, self._red_score, self._has_blue, self._blue_score, self._has_red))
         if (self._shuffle_now_diff > 0 and self._shuffle_now_diff == abs(self._red_score - self._blue_score)):
             mapName = self.console.getMap()
             if (mapName != self._shuffle_now_map):
@@ -160,6 +177,7 @@ class FlagannouncePlugin(b3.plugin.Plugin):
             self._warmup = False
         else:
             # this runs after warmup ends
+            self._mapname = self.console.getMap()
 
             # shuffle if the score difference is set and the difference is at least that value
             if self._shuffle_score_diff > 0 and abs(self._red_score - self._blue_score) >= self._shuffle_score_diff:
@@ -171,6 +189,36 @@ class FlagannouncePlugin(b3.plugin.Plugin):
             self._blue_score = 0
             self._has_red = ""
             self._has_blue = ""
+            self._start_time = datetime.datetime.now()
+
+    def onEvent(self, event):
+        if (event.type == self.console.getEventID('EVT_GAME_EXIT')) or \
+                (event.type == self.console.getEventID('EVT_GAME_ROUND_END')):
+
+            # if (event.type == self.console.getEventID('EVT_GAME_EXIT')):
+            #     self.debug("EVT_GAME_EXIT")
+            # if (event.type == self.console.getEventID('EVT_GAME_ROUND_END')):
+            #     self.debug("EVT_GAME_ROUND_END")
+
+            # getmap doesn't work after mapexit, it returns "None"
+            # but this event is firing twice as mapexit, so use the second one to actually write
+            localmapname = self.console.getMap()
+
+            if not localmapname:
+                maptime = "00:00"
+                if self._start_time:
+                    timediff = datetime.datetime.now() - self._start_time
+                    diffminutes, diffseconds = divmod(timediff.seconds, 60)
+                    maptime = "%02i:%02i" % (diffminutes, diffseconds)
+                self.debug("onEvent %s. Red %s, Blue %s; map time %s; localmapname: %s" % (self._mapname, self._red_score, self._blue_score, maptime, localmapname))
+
+                # NOTE: for some reason this fires before the final cap is counted, so update from poweradmin (doesn't work)
+                # self._red_score, self._blue_score = self._poweradminPlugin.getTeamScores()
+
+                mapresult1 = mapresult(self._mapname, self._red_score, self._blue_score, maptime, None, None)
+                # self.debug("DK: made it past")
+                self.console.storage.setMapResult(mapresult1)
+                # return 0
 
     ####################################################################################################################
     #                                                                                                                  #
@@ -183,3 +231,30 @@ class FlagannouncePlugin(b3.plugin.Plugin):
     #    COMMANDS                                                                                                      #
     #                                                                                                                  #
     ####################################################################################################################
+
+    def cmd_faset(self, data=None, client=None, cmd=None):
+        # self.debug("faset entered")
+
+        # auto pull the map name
+        self._mapname = self.console.getMap()
+
+        m = self._adminPlugin.parseUserCmd(data)
+        if not m:
+            client.message('^7Missing data, try !help faset')
+            return False
+
+        self.debug("FASet: %s red %s blue %s" % (self._mapname, m[0], m[1]))
+        self._red_score = m[0]
+        self._blue_score = m[1]
+        # NOTE: for some reason this fires before the final cap is counted, so update from poweradmin (doesn't work)
+        # self._red_score, self._blue_score = self._poweradminPlugin.getTeamScores()
+
+        if not self._start_time:
+            self._start_time = datetime.datetime.now()
+
+        cmd.sayLoudOrPM(client, '^7FlagAnnounce set %s ^1Red %s^7, ^4Blue %s' % (self._mapname, self._red_score, self._blue_score))
+
+    def cmd_fashow(self, data=None, client=None, cmd=None):
+        # self.debug("fashow entered")
+
+        cmd.sayLoudOrPM(client, '^7FlagAnnounce %s ^1Red %s^7, ^4Blue %s' % (self._mapname, self._red_score, self._blue_score))

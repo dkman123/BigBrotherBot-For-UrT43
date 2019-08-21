@@ -41,6 +41,7 @@ from b3.storage.cursor import Cursor as DBCursor
 from contextlib import contextmanager
 from time import time
 
+
 class DatabaseStorage(Storage):
 
     _lock = None
@@ -589,6 +590,31 @@ class DatabaseStorage(Storage):
         """
         raise NotImplementedError
 
+    def setMapResult(self, mapresult):
+        """
+        Insert/update a mapresult in the storage. NOTE: there's no reason this should ever update
+        :param mapresult: the map details for the record.
+        :return: The ID of the record stored into the database.
+        """
+        # self.console.debug('Storage: setMapResult %s. %s, %s. %s' % (mapresult.mapname, mapresult.redscore, mapresult.bluescore, mapresult.maptime))
+        fields = ('mapname', 'redscore', 'bluescore', 'maptime', 'createddate')
+
+        data = {'id': mapresult.id} if mapresult.id > 0 else {}
+
+        for f in fields:
+            if hasattr(mapresult, self.getVar(f)):
+                data[f] = getattr(mapresult, self.getVar(f))
+
+        self.console.debug('Storage: setMapResult data %s' % data)
+        if mapresult.id > 0:
+            self.query(QueryBuilder(self.db).UpdateQuery(data, 'mapresult', {'id': mapresult.id}))
+        else:
+            cursor = self.query(QueryBuilder(self.db).InsertQuery(data, 'mapresult'))
+            mapresult.id = cursor.lastrowid
+            cursor.close()
+
+        return mapresult.id
+
     ####################################################################################################################
     #                                                                                                                  #
     #   QUERY PROCESSING                                                                                               #
@@ -691,6 +717,7 @@ class DatabaseStorage(Storage):
 
         # reset standard error output
         sys.stderr = orig_stderr
+
 
     ####################################################################################################################
     #                                                                                                                  #

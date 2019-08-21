@@ -21,6 +21,28 @@ __version__ = '1.2'
 
 PROTOCOLS = ('mysql', 'sqlite', 'postgresql')
 
+import datetime
+
+
+class mapresult(object):
+    # initialization function
+    def __init__(self, mapname, redscore, bluescore, maptime, createddate, id):
+        if id:
+            self.id = id
+        else:
+            self.id = 0
+            # self.id = None
+        self.mapname = mapname
+        self.redscore = redscore
+        self.bluescore = bluescore
+        self.maptime = maptime
+        if createddate:
+            self.createddate = createddate
+        else:
+            self.createddate = datetime.datetime.now().strftime("%Y-%m-%d %H:%M")
+            # self.createddate = None
+
+
 class Storage(object):
 
     console = None
@@ -104,9 +126,11 @@ class Storage(object):
     def status(self):
         raise NotImplementedError
 
+
 from mysql import MysqlStorage
 from sqlite import SqliteStorage
 from postgresql import PostgresqlStorage
+
 
 def getStorage(dsn, dsnDict, console):
     """
