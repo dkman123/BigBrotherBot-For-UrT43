@@ -240,9 +240,9 @@ class FlagannouncePlugin(b3.plugin.Plugin):
     def checkPlayerCount(self):
         clients = self.console.clients.getList()
         players = len(clients)
-        for rec in clients:
-            self.debug(rec.name)
-        self.debug("DK: player count: %s" % players)
+        # for rec in clients:
+        #     self.debug(rec.name)
+        self.debug("player count: %s" % players)
         if self._low_player > players:
             self._low_player = players
         if self._high_player < players:
@@ -283,5 +283,9 @@ class FlagannouncePlugin(b3.plugin.Plugin):
     def cmd_fashow(self, data=None, client=None, cmd=None):
         # self.debug("fashow entered")
 
-        cmd.sayLoudOrPM(client, '^7FlagAnnounce %s ^1Red %s^7, ^4Blue %s^7. Low-High %s-%s'
-                        % (self._mapname, self._red_score, self._blue_score, self._low_player, self._high_player))
+        if not self._start_time:
+            self._start_time = datetime.datetime.now()
+
+        cmd.sayLoudOrPM(client, '^7FlagAnnounce %s ^1Red %s^7, ^4Blue %s^7. Low-High %s-%s. start time %s'
+                        % (self._mapname, self._red_score, self._blue_score, self._low_player, self._high_player
+                           , self._start_time.strftime("%H:%M")))
