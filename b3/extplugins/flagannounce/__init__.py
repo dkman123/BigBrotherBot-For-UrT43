@@ -239,15 +239,16 @@ class FlagannouncePlugin(b3.plugin.Plugin):
     ####################################################################################################################
 
     def checkPlayerCount(self):
-        clients = self.console.clients.getList()
-        players = len(clients)
-        # for rec in clients:
-        #     self.debug(rec.name)
-        self.debug("player count: %s" % players)
-        if self._low_player > players:
-            self._low_player = players
-        if self._high_player < players:
-            self._high_player = players
+        if self._capture_map_results is True:
+            clients = self.console.clients.getList()
+            players = len(clients)
+            # for rec in clients:
+            #     self.debug(rec.name)
+            self.debug("player count: %s" % players)
+            if self._low_player > players:
+                self._low_player = players
+            if self._high_player < players:
+                self._high_player = players
 
     ####################################################################################################################
     #                                                                                                                  #
