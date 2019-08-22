@@ -199,6 +199,7 @@ class FlagannouncePlugin(b3.plugin.Plugin):
             self._start_time = datetime.datetime.now()
             self._low_player = 99
             self._high_player = 0
+            self.checkPlayerCount()
 
     def onEvent(self, event):
         if (event.type == self.console.getEventID('EVT_GAME_EXIT')) or \
