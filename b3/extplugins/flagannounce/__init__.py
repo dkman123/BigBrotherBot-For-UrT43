@@ -49,8 +49,11 @@ class FlagannouncePlugin(b3.plugin.Plugin):
     _shuffle_now_map = ""
     _warmup = False
     _capture_map_results = False
+    # variables for mapresults
     _mapname = ""
     _start_time = None
+    _low_player = 99
+    _high_player = 0
 
     ####################################################################################################################
     #                                                                                                                  #
@@ -156,15 +159,19 @@ class FlagannouncePlugin(b3.plugin.Plugin):
                 if caplimit - self._blue_score > 0:
                     self.console.say(self.getMessage('blue_flags_to_limit', (caplimit - self._blue_score)))
 
-            self.debug("DK: FlagAnnounce Red: %s; Blue: %s" % (self._red_score, self._blue_score))
+            self.debug("FlagAnnounce Red: %s; Blue: %s" % (self._red_score, self._blue_score))
 
-        # self.debug("FlagAnnounce %s Red: %s by has_blue %s; Blue: %s by has_red %s" % (event.data, self._red_score, self._has_blue, self._blue_score, self._has_red))
-        if (self._shuffle_now_diff > 0 and self._shuffle_now_diff == abs(self._red_score - self._blue_score)):
-            mapName = self.console.getMap()
-            if (mapName != self._shuffle_now_map):
-                self.debug("Running shuffle now")
-                self._shuffle_now_map = mapName
-                self._poweradminPlugin.cmd_paskuffle()
+            self.checkPlayerCount()
+
+            # self.debug("FlagAnnounce %s Red: %s by has_blue %s; Blue: %s by has_red %s"
+            #            % (event.data, self._red_score, self._has_blue, self._blue_score, self._has_red))
+            if (self._shuffle_now_diff > 0
+                    and self._shuffle_now_diff == abs(self._red_score - self._blue_score)):
+                mapName = self.console.getMap()
+                if (mapName != self._shuffle_now_map):
+                    self.debug("Running shuffle now")
+                    self._shuffle_now_map = mapName
+                    self._poweradminPlugin.cmd_paskuffle()
 
     def onNewMap(self, event):
         """
@@ -190,6 +197,8 @@ class FlagannouncePlugin(b3.plugin.Plugin):
             self._has_red = ""
             self._has_blue = ""
             self._start_time = datetime.datetime.now()
+            self._low_player = 99
+            self._high_player = 0
 
     def onEvent(self, event):
         if (event.type == self.console.getEventID('EVT_GAME_EXIT')) or \
@@ -210,12 +219,14 @@ class FlagannouncePlugin(b3.plugin.Plugin):
                     timediff = datetime.datetime.now() - self._start_time
                     diffminutes, diffseconds = divmod(timediff.seconds, 60)
                     maptime = "%02i:%02i" % (diffminutes, diffseconds)
-                self.debug("onEvent %s. Red %s, Blue %s; map time %s; localmapname: %s" % (self._mapname, self._red_score, self._blue_score, maptime, localmapname))
+                self.debug("onEvent %s. Red %s, Blue %s; map time %s; low-high %s-%s; localmapname: %s"
+                           % (self._mapname, self._red_score, self._blue_score, maptime, self._low_player, self._high_player, localmapname))
 
                 # NOTE: for some reason this fires before the final cap is counted, so update from poweradmin (doesn't work)
                 # self._red_score, self._blue_score = self._poweradminPlugin.getTeamScores()
 
-                mapresult1 = mapresult(self._mapname, self._red_score, self._blue_score, maptime, None, None)
+                mapresult1 = mapresult(self._mapname, self._red_score, self._blue_score, maptime,
+                                       self._low_player, self._high_player, None, None)
                 # self.debug("DK: made it past")
                 self.console.storage.setMapResult(mapresult1)
                 # return 0
@@ -225,6 +236,17 @@ class FlagannouncePlugin(b3.plugin.Plugin):
     #    OTHER METHODS                                                                                                 #
     #                                                                                                                  #
     ####################################################################################################################
+
+    def checkPlayerCount(self):
+        clients = self.console.clients.getList()
+        players = len(clients)
+        for rec in clients:
+            self.debug(rec.name)
+        self.debug("DK: player count: %s" % players)
+        if self._low_player > players:
+            self._low_player = players
+        if self._high_player < players:
+            self._high_player = players
 
     ####################################################################################################################
     #                                                                                                                  #
@@ -252,9 +274,14 @@ class FlagannouncePlugin(b3.plugin.Plugin):
         if not self._start_time:
             self._start_time = datetime.datetime.now()
 
-        cmd.sayLoudOrPM(client, '^7FlagAnnounce set %s ^1Red %s^7, ^4Blue %s' % (self._mapname, self._red_score, self._blue_score))
+        self.checkPlayerCount()
+
+        cmd.sayLoudOrPM(client, '^7FlagAnnounce set %s ^1Red %s^7, ^4Blue %s^7. Low-High %s-%s'
+                        % (self._mapname, self._red_score, self._blue_score, self._low_player, self._high_player))
+
 
     def cmd_fashow(self, data=None, client=None, cmd=None):
         # self.debug("fashow entered")
 
-        cmd.sayLoudOrPM(client, '^7FlagAnnounce %s ^1Red %s^7, ^4Blue %s' % (self._mapname, self._red_score, self._blue_score))
+        cmd.sayLoudOrPM(client, '^7FlagAnnounce %s ^1Red %s^7, ^4Blue %s^7. Low-High %s-%s'
+                        % (self._mapname, self._red_score, self._blue_score, self._low_player, self._high_player))

@@ -26,7 +26,7 @@ import datetime
 
 class mapresult(object):
     # initialization function
-    def __init__(self, mapname, redscore, bluescore, maptime, createddate, id):
+    def __init__(self, mapname, redscore, bluescore, maptime, lowplayer, highplayer, createddate, id):
         if id:
             self.id = id
         else:
@@ -36,6 +36,8 @@ class mapresult(object):
         self.redscore = redscore
         self.bluescore = bluescore
         self.maptime = maptime
+        self.lowplayer = lowplayer
+        self.highplayer = highplayer
         if createddate:
             self.createddate = createddate
         else:

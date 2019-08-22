@@ -597,7 +597,7 @@ class DatabaseStorage(Storage):
         :return: The ID of the record stored into the database.
         """
         # self.console.debug('Storage: setMapResult %s. %s, %s. %s' % (mapresult.mapname, mapresult.redscore, mapresult.bluescore, mapresult.maptime))
-        fields = ('mapname', 'redscore', 'bluescore', 'maptime', 'createddate')
+        fields = ('mapname', 'redscore', 'bluescore', 'maptime', 'lowplayer', 'highplayer', 'createddate')
 
         data = {'id': mapresult.id} if mapresult.id > 0 else {}
 
