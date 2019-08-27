@@ -32,7 +32,7 @@ class Poweradminurt43Plugin(Poweradminurt41Plugin):
 
     requiresParsers = ['iourt43']
 
-    _gears = dict(none='FGHIJKLMNZacefghigklOQRSTUVWX', all='', reset='')
+    _gears = dict(none='FGHIJKLMNZacefghijklOQRSTUVWX', all='', reset='', stuff='RWUVTSX')
     _weapons = dict(ber='F', de='G', glo='f', colt='g', spas='H', mp5='I', ump='J', mac='h', hk='K',
                     lr='L', g36='M', psg='N', sr8='Z', ak='a', neg='c', m4='e', he='O', smo='Q',
                     vest='R', hel='W', sil='U', las='V', med='T', nvg='S', ammo='X', frf1='i', ben='j', fnp='k', mag='l')
@@ -56,6 +56,14 @@ class Poweradminurt43Plugin(Poweradminurt41Plugin):
         'all_snipers': 'NZi',
         'all_pistols': 'FGfgl',
         'all_auto': 'IJLMacehk',
+        'all_stuff': 'RWUVTSX',
+        'all_shotguns': 'Hj',
+        'nades': 'OQ',
+        'snipers': 'NZi',
+        'pistols': 'FGfgl',
+        'auto': 'IJLMacehk',
+        'stuff': 'RWUVTSX',
+        'shotguns': 'Hj'
     }
 
     # radio spam protection
