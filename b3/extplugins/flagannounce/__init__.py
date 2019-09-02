@@ -29,10 +29,22 @@ import b3
 import b3.events
 import b3.plugin
 import datetime
+import threading
+import time
 
 from b3.functions import getCmd
 from ConfigParser import NoOptionError
 from b3.storage import mapresult
+
+
+def skuffle_thread(self):
+    self.debug("Thread skuffle_thread: starting")
+    self.console.say("Shuffle in %s seconds" % self._shuffle_delay)
+    time.sleep(self._shuffle_delay)
+    # self.console.say("Score Auto Shuffle")
+    self._poweradminPlugin.cmd_paskuffle()
+    self.debug("Thread skuffle_thread: finishing")
+
 
 class FlagannouncePlugin(b3.plugin.Plugin):
     # requiresConfigFile = True
@@ -45,8 +57,11 @@ class FlagannouncePlugin(b3.plugin.Plugin):
     _has_red = ""
     _has_blue = ""
     _shuffle_score_diff = 0
+    _shuffle_delay = 0
     _shuffle_now_diff = 0
     _shuffle_now_map = ""
+    _balance_now_diff = 0
+    _balance_now_map = ""
     _warmup = False
     _capture_map_results = False
     # variables for mapresults
@@ -102,6 +117,16 @@ class FlagannouncePlugin(b3.plugin.Plugin):
             self.debug('using default value (%s) for settings/shuffle_score_diff' % self._shuffle_score_diff)
 
         try:
+            self._shuffle_delay = self.config.getint('settings', 'shuffle_delay')
+            self.debug('loaded settings/shuffle_delay: %s' % self._shuffle_delay)
+        except NoOptionError:
+            self.warning('could not find settings/shuffle_delay in config file, '
+                         'using default: %s' % self._shuffle_delay)
+        except KeyError, e:
+            self.error('could not load settings/shuffle_delay config value: %s' % e)
+            self.debug('using default value (%s) for settings/shuffle_delay' % self._shuffle_delay)
+
+        try:
             self._shuffle_now_diff = self.config.getint('settings', 'shuffle_now_diff')
             self.debug('loaded settings/shuffle_now_diff: %s' % self._shuffle_now_diff)
         except NoOptionError:
@@ -110,6 +135,16 @@ class FlagannouncePlugin(b3.plugin.Plugin):
         except KeyError, e:
             self.error('could not load settings/shuffle_now_diff config value: %s' % e)
             self.debug('using default value (%s) for settings/shuffle_now_diff' % self._shuffle_now_diff)
+
+        try:
+            self._balance_now_diff = self.config.getint('settings', 'balance_now_diff')
+            self.debug('loaded settings/balance_now_diff: %s' % self._balance_now_diff)
+        except NoOptionError:
+            self.warning('could not find settings/balance_now_diff in config file, '
+                         'using default: %s' % self._balance_now_diff)
+        except KeyError, e:
+            self.error('could not load settings/balance_now_diff config value: %s' % e)
+            self.debug('using default value (%s) for settings/balance_now_diff' % self._balance_now_diff)
 
         try:
             self._capture_map_results = self.getSetting('settings', 'capture_map_results', b3.BOOL, self._capture_map_results)
@@ -173,6 +208,14 @@ class FlagannouncePlugin(b3.plugin.Plugin):
                     self._shuffle_now_map = mapName
                     self._poweradminPlugin.cmd_paskuffle()
 
+            if (self._balance_now_diff > 0
+                    and self._balance_now_diff == abs(self._red_score - self._blue_score)):
+                mapName = self.console.getMap()
+                if (mapName != self._balance_now_map):
+                    self.debug("Running balance now")
+                    self._balance_now_map = mapName
+                    self._poweradminPlugin.cmd_pabalance()
+
     def onNewMap(self, event):
         """
         Handle EVT_GAME_ROUND_START
@@ -188,9 +231,11 @@ class FlagannouncePlugin(b3.plugin.Plugin):
 
             # shuffle if the score difference is set and the difference is at least that value
             if self._shuffle_score_diff > 0 and abs(self._red_score - self._blue_score) >= self._shuffle_score_diff:
-                self.debug("FlagAnnounce: shuffling due to last map cap difference %s >= %s" % (abs(self._red_score - self._blue_score), self._shuffle_score_diff))
-                # do i need to start a new thread and wait 30 seconds first?
-                self._poweradminPlugin.cmd_paskuffle()
+                self.debug("FlagAnnounce: shuffling due to last map cap difference %s >= %s"
+                           % (abs(self._red_score - self._blue_score), self._shuffle_score_diff))
+                # start a thread to wait and run skuffle after the delay
+                bt = threading.Thread(target=skuffle_thread, args=(self,))
+                bt.start()
 
             self._red_score = 0
             self._blue_score = 0
