@@ -302,6 +302,9 @@ class FlagannouncePlugin(b3.plugin.Plugin):
     ####################################################################################################################
 
     def cmd_faset(self, data=None, client=None, cmd=None):
+        """
+        <red_score> <blue_score> - Set the scores.  Only needed if B3 was restarted during a map.
+        """
         # self.debug("faset entered")
 
         # auto pull the map name
@@ -328,6 +331,9 @@ class FlagannouncePlugin(b3.plugin.Plugin):
 
 
     def cmd_fashow(self, data=None, client=None, cmd=None):
+        """
+        Show the scores, low-high player count, and map start time (using server time).
+        """
         # self.debug("fashow entered")
 
         if not self._start_time:

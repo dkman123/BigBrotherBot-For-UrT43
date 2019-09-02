@@ -290,21 +290,9 @@ class MapconfigPlugin(b3.plugin.Plugin):
 	####################################################################################################################
 
 	def cmd_mapconfig(self, data=None, client=None, cmd=None):
-		# , data=None, client=None, cmd=None
-		# if not data:
-		# 	client.message('^7invalid data, try !help mapconfig')
-		# 	return
-
-		# sclient = self._adminPlugin.findClientPrompt(data, client)
-
-		# if not sclient:
-		#	# a player matching the name was not found, a list of closest matches will be displayed
-		#	# we can exit here and the user will retry with a more specific player
-		# 	return
-
-		# TODO check immunity level
-		# if sclient.
-
+		"""
+		Set the game settings for this map from the mapconfig table.
+		"""
 		# cmd.sayLoudOrPM(client, 'dosomething %s' % (sclient.cid))
 		mapName = self.console.getMap()
 		# mapName = b3.game.getMap()
@@ -312,6 +300,9 @@ class MapconfigPlugin(b3.plugin.Plugin):
 		self.setMapSettings(mapName)
 
 	def cmd_maplist(self, data=None, client=None, cmd=None):
+		"""
+		Get the mapcycle.txt map list.
+		"""
 		self.debug("maplist entered")
 
 		if not self.mapcycle_fileName or self.mapcycle_fileName == "":
@@ -340,7 +331,15 @@ class MapconfigPlugin(b3.plugin.Plugin):
 			self.mapcycle_timestamp = file_timestamp
 
 		if self.mapcycle:
-			cmd.sayLoudOrPM(client, '^7MapList: ^2%s' % '^7, ^2'.join(self.mapcycle))
+			# get the current map and colorize it if it's in the cycle
+			mapname = self.console.getMap()
+			if mapname in self.mapcycle:
+				idx = self.mapcycle.index(mapname)
+				self.mapcycle[idx] = "^8" + self.mapcycle[idx] + "^7"
+				cmd.sayLoudOrPM(client, '^7MapList: ^2%s' % '^7, ^2'.join(self.mapcycle))
+				self.mapcycle[idx] = mapname
+			else:
+				cmd.sayLoudOrPM(client, '^7MapList: ^2%s' % '^7, ^2'.join(self.mapcycle))
 		else:
 			cmd.sayLoudOrPM(client, '^7MapList not found')
 
@@ -368,6 +367,9 @@ class MapconfigPlugin(b3.plugin.Plugin):
 		return g_nextmap2, g_nextmap3
 
 	def cmd_upcoming(self, data=None, client=None, cmd=None):
+		"""
+		Show the next 3 upcoming maps.
+		"""
 		# self.debug("upcoming entered")
 
 		if not self.mapcycle_fileName or self.mapcycle_fileName == "":
