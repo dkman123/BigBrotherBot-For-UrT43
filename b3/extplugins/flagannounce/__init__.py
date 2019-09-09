@@ -216,6 +216,12 @@ class FlagannouncePlugin(b3.plugin.Plugin):
                     self._balance_now_map = mapName
                     self._poweradminPlugin.cmd_pabalance()
 
+            if (self._red_score == caplimit or self._blue_score == caplimit):
+                if self._shuffle_score_diff > 0 and abs(self._red_score - self._blue_score) >= self._shuffle_score_diff:
+                    self.debug("FlagAnnounce: setting shuffle due to last map cap difference %s >= %s"
+                               % (abs(self._red_score - self._blue_score), self._shuffle_score_diff))
+                    self.console.setCvar('g_randomorder', 1)
+
     def onNewMap(self, event):
         """
         Handle EVT_GAME_ROUND_START
@@ -231,11 +237,13 @@ class FlagannouncePlugin(b3.plugin.Plugin):
 
             # shuffle if the score difference is set and the difference is at least that value
             if self._shuffle_score_diff > 0 and abs(self._red_score - self._blue_score) >= self._shuffle_score_diff:
-                self.debug("FlagAnnounce: shuffling due to last map cap difference %s >= %s"
-                           % (abs(self._red_score - self._blue_score), self._shuffle_score_diff))
-                # start a thread to wait and run skuffle after the delay
-                bt = threading.Thread(target=skuffle_thread, args=(self,))
-                bt.start()
+                self.debug("FlagAnnounce: turning random order off")
+                self.console.setCvar('g_randomorder', 0)
+            #     self.debug("FlagAnnounce: shuffling due to last map cap difference %s >= %s"
+            #                % (abs(self._red_score - self._blue_score), self._shuffle_score_diff))
+            #     # start a thread to wait and run skuffle after the delay
+            #     bt = threading.Thread(target=skuffle_thread, args=(self,))
+            #     bt.start()
 
             self._red_score = 0
             self._blue_score = 0
@@ -342,3 +350,11 @@ class FlagannouncePlugin(b3.plugin.Plugin):
         cmd.sayLoudOrPM(client, '^7FlagAnnounce %s ^1Red %s^7, ^4Blue %s^7. Low-High %s-%s. start time %s'
                         % (self._mapname, self._red_score, self._blue_score, self._low_player, self._high_player
                            , self._start_time.strftime("%H:%M")))
+
+    # def cmd_shuffle(self):
+    #     """
+    #     Straight random shuffle
+    #     """
+    #
+    #     # /rcon swap <clientA> <clientB>
+    #     self.console.write('swap %s %s' % (client1.cid, client2.cid))
