@@ -45,6 +45,14 @@ def skuffle_thread(self):
     self._poweradminPlugin.cmd_paskuffle()
     self.debug("Thread skuffle_thread: finishing")
 
+def randomshuffle_thread(self):
+    self.debug("Thread randomshuffle_thread: starting")
+    self.console.say("Shuffle in %s seconds" % self._shuffle_delay)
+    time.sleep(self._shuffle_delay)
+    # self.console.say("Score Auto Shuffle")
+    self.cmd_randomshuffle()
+    self.debug("Thread randomshuffle_thread: finishing")
+
 
 class FlagannouncePlugin(b3.plugin.Plugin):
     # requiresConfigFile = True
@@ -216,11 +224,12 @@ class FlagannouncePlugin(b3.plugin.Plugin):
                     self._balance_now_map = mapName
                     self._poweradminPlugin.cmd_pabalance()
 
-            if (self._red_score == caplimit or self._blue_score == caplimit):
-                if self._shuffle_score_diff > 0 and abs(self._red_score - self._blue_score) >= self._shuffle_score_diff:
-                    self.debug("FlagAnnounce: setting shuffle due to last map cap difference %s >= %s"
-                               % (abs(self._red_score - self._blue_score), self._shuffle_score_diff))
-                    self.console.setCvar('g_randomorder', 1)
+            # randomorder doesn't seem to do anything
+            # if (self._red_score == caplimit or self._blue_score == caplimit):
+            #     if self._shuffle_score_diff > 0 and abs(self._red_score - self._blue_score) >= self._shuffle_score_diff:
+            #         self.debug("FlagAnnounce: setting shuffle due to last map cap difference %s >= %s"
+            #                    % (abs(self._red_score - self._blue_score), self._shuffle_score_diff))
+            #         self.console.setCvar('g_randomorder', 1)
 
     def onNewMap(self, event):
         """
@@ -238,12 +247,21 @@ class FlagannouncePlugin(b3.plugin.Plugin):
             # shuffle if the score difference is set and the difference is at least that value
             if self._shuffle_score_diff > 0 and abs(self._red_score - self._blue_score) >= self._shuffle_score_diff:
                 self.debug("FlagAnnounce: turning random order off")
-                self.console.setCvar('g_randomorder', 0)
+            # random order doesn't seem to do anything
+            #    self.console.setCvar('g_randomorder', 0)
+            # skill shuffle at the very beginning of a map doesn't do anything
             #     self.debug("FlagAnnounce: shuffling due to last map cap difference %s >= %s"
             #                % (abs(self._red_score - self._blue_score), self._shuffle_score_diff))
             #     # start a thread to wait and run skuffle after the delay
             #     bt = threading.Thread(target=skuffle_thread, args=(self,))
             #     bt.start()
+                # do a true random shuffle
+                self.debug("FlagAnnounce: shuffling due to last map cap difference %s >= %s"
+                           % (abs(self._red_score - self._blue_score), self._shuffle_score_diff))
+                # start a thread to wait and run skuffle after the delay
+                bt = threading.Thread(target=randomshuffle_thread, args=(self,))
+                bt.start()
+
 
             self._red_score = 0
             self._blue_score = 0
@@ -351,10 +369,11 @@ class FlagannouncePlugin(b3.plugin.Plugin):
                         % (self._mapname, self._red_score, self._blue_score, self._low_player, self._high_player
                            , self._start_time.strftime("%H:%M")))
 
-    # def cmd_shuffle(self):
-    #     """
-    #     Straight random shuffle
-    #     """
-    #
-    #     # /rcon swap <clientA> <clientB>
-    #     self.console.write('swap %s %s' % (client1.cid, client2.cid))
+    def cmd_randomshuffle(self):
+        """
+        Straight random shuffle
+        """
+        # choose the number of people on the blue team /2
+        # call swap with the first X people on red and blue
+        # /rcon swap <clientA> <clientB>
+        self.console.write('swap %s %s' % (client1.cid, client2.cid))

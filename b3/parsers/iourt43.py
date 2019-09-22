@@ -162,6 +162,8 @@ class Iourt43Client(Client):
             self.console.debug("Client authorized: %s [@%s] [GUID: '%s'] [FSA: '%s']", self.name, self.id, self.guid, self.pbid)
 
             # check for bans
+            self.console.debug('parser iourt43 numBans = %s', self.numBans)
+
             if self.numBans > 0:
                 ban = self.lastBan
                 if ban:

@@ -448,9 +448,16 @@ class DatabaseStorage(Storage):
         :param type: The type of the penalties we want to retrieve.
         :return: List of penalties
         """
+        # self.console.debug('Storage: getClientPenalties %s' % client)
+        # where = QueryBuilder(self.db).WhereClause({'type': type, 'client_id': client.id, 'inactive': 0})
+        # where += ' AND (time_expire = -1 OR time_expire > %s)' % int(time())
+        # cursor = self.query(QueryBuilder(self.db).SelectQuery('*', 'penalties', where, 'time_add DESC'))
+
+        # DK: testing get client penalties by IP
         self.console.debug('Storage: getClientPenalties %s' % client)
-        where = QueryBuilder(self.db).WhereClause({'type': type, 'client_id': client.id, 'inactive': 0})
+        where = QueryBuilder(self.db).WhereClause({'type': type, 'inactive': 0})
         where += ' AND (time_expire = -1 OR time_expire > %s)' % int(time())
+        where += ' AND client_id IN (SELECT id FROM clients WHERE ip = "%s")' % client.ip
         cursor = self.query(QueryBuilder(self.db).SelectQuery('*', 'penalties', where, 'time_add DESC'))
 
         penalties = []
@@ -459,6 +466,7 @@ class DatabaseStorage(Storage):
             cursor.moveNext()
 
         cursor.close()
+        # self.console.debug("Storage: getClientPenalties found %s records", len(penalties))
         return penalties
 
     def getClientLastPenalty(self, client, type='Ban'):
@@ -468,8 +476,15 @@ class DatabaseStorage(Storage):
         :param type: The type of the penalty we want to retrieve.
         :return: The last penalty added for the given client
         """
-        where = QueryBuilder(self.db).WhereClause({'type': type, 'client_id': client.id, 'inactive': 0})
+        # where = QueryBuilder(self.db).WhereClause({'type': type, 'client_id': client.id, 'inactive': 0})
+        # where += ' AND (time_expire = -1 OR time_expire > %s)' % int(time())
+        # cursor = self.query(QueryBuilder(self.db).SelectQuery('*', 'penalties', where, 'time_add DESC', 1))
+
+        # DK: testing get client penalties by IP
+        self.console.debug('Storage: getClientPenalties %s' % client)
+        where = QueryBuilder(self.db).WhereClause({'type': type, 'inactive': 0})
         where += ' AND (time_expire = -1 OR time_expire > %s)' % int(time())
+        where += ' AND client_id IN (SELECT id FROM clients WHERE ip = "%s")' % client.ip
         cursor = self.query(QueryBuilder(self.db).SelectQuery('*', 'penalties', where, 'time_add DESC', 1))
 
         row = cursor.getOneRow()
@@ -511,11 +526,20 @@ class DatabaseStorage(Storage):
         :param type: The penalties type.
         :return The number of penalties.
         """
-        where = QueryBuilder(self.db).WhereClause({'type': type, 'client_id': client.id, 'inactive': 0})
+        # where = QueryBuilder(self.db).WhereClause({'type': type, 'client_id': client.id, 'inactive': 0})
+        # where += ' AND (time_expire = -1 OR time_expire > %s)' % int(time())
+        # cursor = self.query("""SELECT COUNT(id) total FROM penalties WHERE %s""" % where)
+
+        # DK: testing get client penalties by IP
+        self.console.debug('Storage: getClientPenalties %s' % client)
+        where = QueryBuilder(self.db).WhereClause({'type': type, 'inactive': 0})
         where += ' AND (time_expire = -1 OR time_expire > %s)' % int(time())
+        where += ' AND client_id IN (SELECT id FROM clients WHERE ip = "%s")' % client.ip
         cursor = self.query("""SELECT COUNT(id) total FROM penalties WHERE %s""" % where)
+
         value = int(cursor.getValue('total', 0))
         cursor.close()
+
         return value
 
     _groups = None

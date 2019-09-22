@@ -902,6 +902,7 @@ class Client(object):
             self.console.debug('Client authorized: [%s] %s - %s', self.cid, self.name, self.guid)
 
             # check for bans
+            self.console.debug('clients numBans = %s', self.numBans)
             if self.numBans > 0:
                 ban = self.lastBan
                 if ban:
