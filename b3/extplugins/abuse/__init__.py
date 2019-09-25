@@ -44,8 +44,8 @@ class AbusePlugin(b3.plugin.Plugin):
     # _poweradminPlugin = None
     _immunity_level = None
     # isoTest
-    _permmutelist = [23]
-    _autokilllist = [23]
+    _permmutelist = []
+    _autokilllist = []
 
     ####################################################################################################################
     #                                                                                                                  #
