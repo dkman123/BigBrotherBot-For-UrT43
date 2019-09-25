@@ -202,10 +202,12 @@ class AbusePlugin(b3.plugin.Plugin):
 
         if sclient.id not in self._permmutelist:
             self.debug("abm perm-muting %s %s @%s" % (sclient.cid, sclient.name, sclient.id))
-            cmd.sayLoudOrPM("abm perm-muting %s @%s" % (sclient.name, sclient.id))
+            cmd.sayLoudOrPM(client, "abm perm-muting %s @%s" % (sclient.name, sclient.id))
             self._permmutelist.append(sclient.id)
             # 60 seconds * 60 minutes = 1 hour
             self.console.write("mute %s %s" % (sclient.cid, 60*60))
+        else:
+            cmd.sayLoudOrPM(client, "abm %s @%s is already perm-muted" % (sclient.name, sclient.id))
 
     def cmd_abum(self, data=None, client=None, cmd=None):
         """
@@ -226,9 +228,11 @@ class AbusePlugin(b3.plugin.Plugin):
 
         if sclient.id in self._permmutelist:
             self.debug("abum un-perm-muting %s %s @%s" % (sclient.cid, sclient.name, sclient.id))
-            cmd.sayLoudOrPM("abum un-perm-muting %s @%s" % (sclient.name, sclient.id))
+            cmd.sayLoudOrPM(client, "abum un-perm-muting %s @%s" % (sclient.name, sclient.id))
             self._permmutelist.remove(sclient.id)
             self.console.write("mute %s %s" % (sclient.cid, 0))
+        else:
+            cmd.sayLoudOrPM(client, "abum %s @%s is not perm-muted" % (sclient.name, sclient.id))
 
     def cmd_abak(self, data=None, client=None, cmd=None):
         """
@@ -253,9 +257,11 @@ class AbusePlugin(b3.plugin.Plugin):
 
         if sclient.id not in self._autokilllist:
             self.debug("abak auto-kill %s %s @%s" % (sclient.cid, sclient.name, sclient.id))
-            cmd.sayLoudOrPM("abak auto-kill %s @%s" % (sclient.name, sclient.id))
+            cmd.sayLoudOrPM(client, "abak auto-kill %s @%s" % (sclient.name, sclient.id))
             self._autokilllist.append(sclient.id)
             # self.console.write("smite %s %s" % (sclient.cid, 0))
+        else:
+            cmd.sayLoudOrPM(client, "abak adding auto-kill %s @%s" % (sclient.name, sclient.id))
 
     def cmd_abuak(self, data=None, client=None, cmd=None):
         """
@@ -276,5 +282,7 @@ class AbusePlugin(b3.plugin.Plugin):
 
         if sclient.id in self._autokilllist:
             self.debug("abuak removing auto-kill for %s %s @%s" % (sclient.cid, sclient.name, sclient.id))
-            cmd.sayLoudOrPM("abuak removing auto-kill for  %s @%s" % (sclient.name, sclient.id))
+            cmd.sayLoudOrPM(client, "abuak removing auto-kill for %s @%s" % (sclient.name, sclient.id))
             self._autokilllist.remove(sclient.id)
+        else:
+            cmd.sayLoudOrPM(client, "abuak %s @%s is not in auto-kill" % (sclient.name, sclient.id))
