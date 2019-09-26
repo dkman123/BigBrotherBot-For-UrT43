@@ -22,7 +22,7 @@
 #                                                                     #
 # ################################################################### #
 
-__version__ = '0.1'
+__version__ = '0.2'
 __author__  = 'isopropanol'
 
 import b3
@@ -262,7 +262,6 @@ class FlagannouncePlugin(b3.plugin.Plugin):
                 bt = threading.Thread(target=randomshuffle_thread, args=(self,))
                 bt.start()
 
-
             self._red_score = 0
             self._blue_score = 0
             self._has_red = ""
@@ -369,11 +368,38 @@ class FlagannouncePlugin(b3.plugin.Plugin):
                         % (self._mapname, self._red_score, self._blue_score, self._low_player, self._high_player
                            , self._start_time.strftime("%H:%M")))
 
-    def cmd_randomshuffle(self):
+    def cmd_randomshuffle(self, data=None, client=None, cmd=None):
         """
-        Straight random shuffle
+        Straight random shuffle (WIP)
         """
-        # choose the number of people on the blue team /2
-        # call swap with the first X people on red and blue
+        self.debug("randomshuffle entered")
+
+        teamred = self.console.getCvar('g_redteamlist').getString()
+        teamblue = self.console.getCvar('g_blueteamlist').getString()
+        self.debug("randomshuffle red: %s" % teamred)
+        self.debug("randomshuffle blue: %s" % teamblue)
+        if client:
+            client.message("randomshuffle red: %s" % teamred)
+            client.message("randomshuffle blue: %s" % teamblue)
+        reds = list(teamred)
+        blues = list(teamblue)
+        self.debug("randomshuffle reds: %s" % reds)
+        self.debug("randomshuffle blues: %s" % blues)
+        # get the count of the smaller team
+        teamsize = len(reds)
+        if len(blues) < teamsize:
+            teamsize = len(blues)
+        # get half that number, rounded down
+        shufflecount = teamsize / 2
+        if shufflecount < 1:
+            self.console.say("Not enough players to shuffle")
+            return
+        # if shufflecount is even start at index 0
+        # if shufflecount is odd start at index 1
+        pos = shufflecount % 2
+        # call swap with every other person on red and blue
         # /rcon swap <clientA> <clientB>
-        self.console.write('swap %s %s' % (client1.cid, client2.cid))
+        while pos < teamsize:
+            self.debug("RandomShuffle swapping %s %s" % (teamred[pos], teamblue[pos]))
+            pos += 2
+            # self.console.write('swap %s %s' % (client1.cid, client2.cid))
