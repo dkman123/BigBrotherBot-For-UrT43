@@ -29,6 +29,7 @@ import b3
 import b3.events
 import b3.plugin
 import datetime
+import random
 import threading
 import time
 
@@ -374,17 +375,27 @@ class FlagannouncePlugin(b3.plugin.Plugin):
         """
         self.debug("randomshuffle entered")
 
+        # slotstoletters = {0: 'A', 1: 'B', 2: 'C', 3: 'D', 4: 'E', 5: 'F', 6: 'G', 7: 'H', 8: 'I', 9: 'J', 10: 'K',
+        #                   11: 'L', 12: 'M', 13: 'N', 14: 'O', 15: 'P', 16: 'Q', 17: 'R', 18: 'S', 19: 'T', 20: 'U',
+        #                   21: 'V', 22: 'W', 23: 'X', 24: 'Y', 25: 'Z', 26: '[', 27: '\\', 28: ']', 29: '^', 30: '_',
+        #                   31: '`'}
+
+        letterstoslots = {'A': 0, 'B': 1, 'C': 2, 'D': 3, 'E': 4, 'F': 5, 'G': 6, 'H': 7, 'I': 8, 'J': 9, 'K': 10,
+                          'L': 11, 'M': 12, 'N': 13, 'O': 14, 'P': 15, 'Q': 16, 'R': 17, 'S': 18, 'T': 19, 'U': 20,
+                          'V': 21, 'W': 22, 'X': 23, 'Y': 24, 'Z': 25, '[': 26, '\\': 27, ']': 28, '^': 29, '_': 30,
+                          '`':  31}
+
         teamred = self.console.getCvar('g_redteamlist').getString()
         teamblue = self.console.getCvar('g_blueteamlist').getString()
         self.debug("randomshuffle red: %s" % teamred)
         self.debug("randomshuffle blue: %s" % teamblue)
-        if client:
-            client.message("randomshuffle red: %s" % teamred)
-            client.message("randomshuffle blue: %s" % teamblue)
+        # if client:
+        #     client.message("randomshuffle red: %s" % teamred)
+        #     client.message("randomshuffle blue: %s" % teamblue)
         reds = list(teamred)
         blues = list(teamblue)
-        self.debug("randomshuffle reds: %s" % reds)
-        self.debug("randomshuffle blues: %s" % blues)
+        # self.debug("randomshuffle reds: %s" % reds)
+        # self.debug("randomshuffle blues: %s" % blues)
         # get the count of the smaller team
         teamsize = len(reds)
         if len(blues) < teamsize:
@@ -394,12 +405,33 @@ class FlagannouncePlugin(b3.plugin.Plugin):
         if shufflecount < 1:
             self.console.say("Not enough players to shuffle")
             return
-        # if shufflecount is even start at index 0
-        # if shufflecount is odd start at index 1
-        pos = shufflecount % 2
-        # call swap with every other person on red and blue
+
+        # determine method
+        # methodlist = {1: 'even', 2: 'odd', 3: 'low', 4: 'high'}
+        method = random.randint(1, 4)
+        if method == 1:
+            # even
+            self.console.say("RandomShuffle: Even")
+            pos = 0
+            step = 2
+        elif method == 2:
+            # odd
+            self.console.say("RandomShuffle: Odd")
+            pos = 1
+            step = 2
+        elif method == 3:
+            # low
+            self.console.say("RandomShuffle: Low")
+            pos = 0
+            step = 1
+        elif method == 4:
+            # high
+            self.console.say("RandomShuffle: High")
+            pos = shufflecount
+            step = 1
+
         # /rcon swap <clientA> <clientB>
         while pos < teamsize:
-            self.debug("RandomShuffle swapping %s %s" % (teamred[pos], teamblue[pos]))
-            pos += 2
-            # self.console.write('swap %s %s' % (client1.cid, client2.cid))
+            self.debug("RandomShuffle swapping %s %s" % (letterstoslots[reds[pos]], letterstoslots[blues[pos]]))
+            self.console.write('swap %s %s' % (letterstoslots[reds[pos]], letterstoslots[blues[pos]]))
+            pos += step
