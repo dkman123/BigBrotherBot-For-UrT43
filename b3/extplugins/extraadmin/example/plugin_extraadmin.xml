@@ -1,17 +1,27 @@
 <configuration plugin="extraadmin">
-<!--
-# Groups are (keyword / level : description)
-# ==============================================
-# superadmin / 100 : Super admin (server owner)
-# senioradmin / 80 : Senior admins
-# fulladmin / 60   : Full admins
-# admin / 40       : Admins
-# mod / 20         : Moderators
-# reg / 2          : Regular players (VIP)
-# user / 1         : Registered players (those who typed !register)
-# guest / 0        : Unregistered players
--->
-
+	<settings name="commands">
+		<!--
+            #
+            # Groups are (keyword / level : description)
+            # ==============================================
+            # superadmin / 100 : Super admin (server owner)
+            # senioradmin / 80 : Senior admins
+            # fulladmin / 60   : Full admins
+            # admin / 40       : Admins
+            # mod / 20         : Moderators
+            # reg / 2          : Regular players (VIP)
+            # user / 1         : Registered players (those who typed !register)
+            # guest / 0        : Unregistered players
+        -->
+        <!-- Command to list all loaded lists -->
+        <set name="autonuke">senioradmin</set>
+        <set name="afk">admin</set>
+        <set name="kafk">fulladmin</set>
+        <set name="salut">fulladmin</set>
+        <set name="change">admin</set>
+        <set name="pm">user</set>
+        <set name="exit">admin</set>
+	</settings>
     <settings name="settings">
 
     <!-- To reverse two players teams -->

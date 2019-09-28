@@ -63,10 +63,10 @@ class FlagannouncePlugin(b3.plugin.Plugin):
     _immunity_level = None
     _red_score = 0
     _blue_score = 0
-    _has_red = ""
-    _has_blue = ""
+    _has_red = -1
+    _has_blue = -1
     _shuffle_score_diff = 0
-    _shuffle_delay = 0
+    _shuffle_delay = 20
     _shuffle_now_diff = 0
     _shuffle_now_map = ""
     _balance_now_diff = 0
@@ -182,24 +182,35 @@ class FlagannouncePlugin(b3.plugin.Plugin):
         # self.debug("FlagAnnounce: %s by %s" % (edata, cname))
 
         # think of it as "flag captured at COLOR:
+        if event.data == 'flag_dropped':
+            if self._has_red == event.client.cid:
+                self._has_red = -1
+            elif self._has_blue == event.client.cid:
+                self._has_blue = -1
         if event.data == 'team_CTF_redflag':
-            self._has_red = event.client.name
+            self._has_red = event.client.cid
             # self.debug("DK: _has_red %s" % self._has_red)
         elif event.data == 'team_CTF_blueflag':
-            self._has_blue = event.client.name
+            self._has_blue = event.client.cid
             # self.debug("DK: _has_blue %s" % self._has_blue)
         if event.data in 'flag_captured':
             self._warmup = True
-            # self.debug("DK: name: %s; has_blue %s; has_red %s" % (event.client.name, self._has_blue, self._has_red))
+            # self.debug("DK: slot id: %s; has_blue %s; has_red %s" % (event.client.cid, self._has_blue, self._has_red))
             caplimit = self.console.getCvar('capturelimit').getInt()
-            if event.client.name == self._has_blue:
+            if event.client.cid == self._has_blue:
                 self._red_score += 1
-                # self.debug("DK: red scored %s" % self._has_blue)
+                self._has_blue = -1
+
+                self.debug("DK: red scored %s" % self._has_blue)
+
                 if caplimit - self._red_score > 0:
                     self.console.say(self.getMessage('red_flags_to_limit', (caplimit - self._red_score)))
-            elif event.client.name == self._has_red:
+            elif event.client.cid == self._has_red:
                 self._blue_score += 1
-                # self.debug("DK: blue scored %s" % self._has_red)
+                self._has_red = -1
+
+                self.debug("DK: blue scored %s" % self._has_red)
+
                 if caplimit - self._blue_score > 0:
                     self.console.say(self.getMessage('blue_flags_to_limit', (caplimit - self._blue_score)))
 
@@ -241,32 +252,32 @@ class FlagannouncePlugin(b3.plugin.Plugin):
         if self._warmup:
             # this catches the original map load
             self._warmup = False
-        else:
-            # this runs after warmup ends
-            self._mapname = self.console.getMap()
 
             # shuffle if the score difference is set and the difference is at least that value
             if self._shuffle_score_diff > 0 and abs(self._red_score - self._blue_score) >= self._shuffle_score_diff:
                 self.debug("FlagAnnounce: turning random order off")
-            # random order doesn't seem to do anything
-            #    self.console.setCvar('g_randomorder', 0)
-            # skill shuffle at the very beginning of a map doesn't do anything
-            #     self.debug("FlagAnnounce: shuffling due to last map cap difference %s >= %s"
-            #                % (abs(self._red_score - self._blue_score), self._shuffle_score_diff))
-            #     # start a thread to wait and run skuffle after the delay
-            #     bt = threading.Thread(target=skuffle_thread, args=(self,))
-            #     bt.start()
+                # random order doesn't seem to do anything
+                #    self.console.setCvar('g_randomorder', 0)
+                # skill shuffle at the very beginning of a map doesn't do anything
+                #     self.debug("FlagAnnounce: shuffling due to last map cap difference %s >= %s"
+                #                % (abs(self._red_score - self._blue_score), self._shuffle_score_diff))
+                #     # start a thread to wait and run skuffle after the delay
+                #     bt = threading.Thread(target=skuffle_thread, args=(self,))
+                #     bt.start()
                 # do a true random shuffle
                 self.debug("FlagAnnounce: shuffling due to last map cap difference %s >= %s"
                            % (abs(self._red_score - self._blue_score), self._shuffle_score_diff))
                 # start a thread to wait and run skuffle after the delay
                 bt = threading.Thread(target=randomshuffle_thread, args=(self,))
                 bt.start()
+        else:
+            # this runs after warmup ends
+            self._mapname = self.console.getMap()
 
             self._red_score = 0
             self._blue_score = 0
-            self._has_red = ""
-            self._has_blue = ""
+            self._has_red = -1
+            self._has_blue = -1
             self._start_time = datetime.datetime.now()
             self._low_player = 99
             self._high_player = 0
@@ -371,9 +382,9 @@ class FlagannouncePlugin(b3.plugin.Plugin):
 
     def cmd_randomshuffle(self, data=None, client=None, cmd=None):
         """
-        Straight random shuffle (WIP)
+        Straight random shuffle
         """
-        self.debug("randomshuffle entered")
+        self.debug("RandomShuffle entered")
 
         # slotstoletters = {0: 'A', 1: 'B', 2: 'C', 3: 'D', 4: 'E', 5: 'F', 6: 'G', 7: 'H', 8: 'I', 9: 'J', 10: 'K',
         #                   11: 'L', 12: 'M', 13: 'N', 14: 'O', 15: 'P', 16: 'Q', 17: 'R', 18: 'S', 19: 'T', 20: 'U',
@@ -387,15 +398,19 @@ class FlagannouncePlugin(b3.plugin.Plugin):
 
         teamred = self.console.getCvar('g_redteamlist').getString()
         teamblue = self.console.getCvar('g_blueteamlist').getString()
-        self.debug("randomshuffle red: %s" % teamred)
-        self.debug("randomshuffle blue: %s" % teamblue)
+
+        self.debug("RandomShuffle red: %s" % teamred)
+        self.debug("RandomShuffle blue: %s" % teamblue)
+
         # if client:
         #     client.message("randomshuffle red: %s" % teamred)
         #     client.message("randomshuffle blue: %s" % teamblue)
         reds = list(teamred)
         blues = list(teamblue)
-        # self.debug("randomshuffle reds: %s" % reds)
-        # self.debug("randomshuffle blues: %s" % blues)
+
+        # self.debug("RandomShuffle reds: %s" % reds)
+        # self.debug("RandomShuffle blues: %s" % blues)
+
         # get the count of the smaller team
         teamsize = len(reds)
         if len(blues) < teamsize:
@@ -403,7 +418,7 @@ class FlagannouncePlugin(b3.plugin.Plugin):
         # get half that number, rounded down
         shufflecount = teamsize / 2
         if shufflecount < 1:
-            self.console.say("Not enough players to shuffle")
+            self.console.say("Not enough players to shuffle. Red %s; Blue %s" % (len(reds), len(blues)))
             return
 
         # determine method
@@ -412,26 +427,109 @@ class FlagannouncePlugin(b3.plugin.Plugin):
         if method == 1:
             # even
             self.console.say("RandomShuffle: Even")
+            self.debug("RandomShuffle Even")
             pos = 0
             step = 2
         elif method == 2:
             # odd
             self.console.say("RandomShuffle: Odd")
+            self.debug("RandomShuffle Odd")
             pos = 1
             step = 2
         elif method == 3:
             # low
             self.console.say("RandomShuffle: Low")
+            self.debug("RandomShuffle Low")
             pos = 0
             step = 1
+            # to trick it into only doing half the team
+            teamsize = shufflecount
         elif method == 4:
             # high
             self.console.say("RandomShuffle: High")
+            self.debug("RandomShuffle High")
             pos = shufflecount
             step = 1
 
         # /rcon swap <clientA> <clientB>
+        # if we run across a flag carrier hold the other character.  if we have 2 at the end swap them
+        hold_red = -1
+        hold_blue = -1
+        self.debug("RandomShuffle Has Red %s; Has Blue %s" % (self._has_red, self._has_blue))
+        # python did not want to do a number to number comparison, so we need to force the issue
+        hasblue = int(self._has_blue)
+        hasred = int(self._has_red)
+
         while pos < teamsize:
-            self.debug("RandomShuffle swapping %s %s" % (letterstoslots[reds[pos]], letterstoslots[blues[pos]]))
-            self.console.write('swap %s %s' % (letterstoslots[reds[pos]], letterstoslots[blues[pos]]))
+            redplayer = int(letterstoslots[reds[pos]])
+            blueplayer = int(letterstoslots[blues[pos]])
+            self.debug("RandomShuffle looking at %s %s" % (redplayer, blueplayer))
+            holding = False
+            # don't swap the flag carrier
+            if redplayer == hasblue:
+                hold_blue = blueplayer
+                self.debug("RandomShuffle Red slot %s has blue flag. Holding blue slot %s" % (self._has_blue, hold_blue))
+                holding = True
+            if blueplayer == hasred:
+                hold_red = redplayer
+                self.debug("RandomShuffle Blue slot %s has red flag. Holding red slot %s" % (self._has_red, hold_red))
+                holding = True
+            if not holding:
+                self.debug("RandomShuffle swapping %s %s" % (redplayer, blueplayer))
+                self.console.write('swap %s %s' % (redplayer, blueplayer))
+            pos += step
+        if hold_red != -1 and hold_blue != -1:
+            self.debug("RandomShuffle swapping %s %s" % (hold_red, hold_blue))
+            self.console.write('swap %s %s' % (hold_red, hold_blue))
+
+
+    def cmd_teamswap(self, data=None, client=None, cmd=None):
+        """
+        Swap full teams.  Red to Blue and Blue to Red
+        """
+        self.debug("TeamSwap entered")
+
+        # slotstoletters = {0: 'A', 1: 'B', 2: 'C', 3: 'D', 4: 'E', 5: 'F', 6: 'G', 7: 'H', 8: 'I', 9: 'J', 10: 'K',
+        #                   11: 'L', 12: 'M', 13: 'N', 14: 'O', 15: 'P', 16: 'Q', 17: 'R', 18: 'S', 19: 'T', 20: 'U',
+        #                   21: 'V', 22: 'W', 23: 'X', 24: 'Y', 25: 'Z', 26: '[', 27: '\\', 28: ']', 29: '^', 30: '_',
+        #                   31: '`'}
+
+        letterstoslots = {'A': 0, 'B': 1, 'C': 2, 'D': 3, 'E': 4, 'F': 5, 'G': 6, 'H': 7, 'I': 8, 'J': 9, 'K': 10,
+                          'L': 11, 'M': 12, 'N': 13, 'O': 14, 'P': 15, 'Q': 16, 'R': 17, 'S': 18, 'T': 19, 'U': 20,
+                          'V': 21, 'W': 22, 'X': 23, 'Y': 24, 'Z': 25, '[': 26, '\\': 27, ']': 28, '^': 29, '_': 30,
+                          '`':  31}
+
+        teamred = self.console.getCvar('g_redteamlist').getString()
+        teamblue = self.console.getCvar('g_blueteamlist').getString()
+
+        self.debug("TeamSwap red: %s" % teamred)
+        self.debug("TeamSwap blue: %s" % teamblue)
+
+        # if client:
+        #     client.message("TeamSwap red: %s" % teamred)
+        #     client.message("TeamSwap blue: %s" % teamblue)
+        reds = list(teamred)
+        blues = list(teamblue)
+
+        # self.debug("TeamSwap reds: %s" % reds)
+        # self.debug("TeamSwap blues: %s" % blues)
+
+        # get the count of the smaller team
+        teamsize = len(reds)
+        if len(blues) < teamsize:
+            teamsize = len(blues)
+        if teamsize < 1:
+            self.console.say("Not enough players to shuffle. Red %s; Blue %s" % (len(reds), len(blues)))
+            return
+
+        pos = 0
+        step = 1
+
+        # /rcon swap <clientA> <clientB>
+
+        while pos < teamsize:
+            redplayer = letterstoslots[reds[pos]]
+            blueplayer = letterstoslots[blues[pos]]
+            self.debug("TeamSwap swapping %s %s" % (redplayer, blueplayer))
+            self.console.write('swap %s %s' % (redplayer, blueplayer))
             pos += step

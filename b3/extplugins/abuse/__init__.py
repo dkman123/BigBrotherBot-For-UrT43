@@ -22,7 +22,7 @@
 #                                                                     #
 # ################################################################### #
 
-__version__ = '0.1'
+__version__ = '0.2'
 __author__  = 'isopropanol'
 
 import b3
@@ -189,7 +189,7 @@ class AbusePlugin(b3.plugin.Plugin):
             client.message('^7invalid data, try !help abm')
             return
 
-        self.debug(data)
+        # self.debug(data)
         sclient = self._adminPlugin.findClientPrompt(data, client)
         if not sclient:
             # a player matchin the name was not found, a list of closest matches will be displayed
@@ -219,7 +219,7 @@ class AbusePlugin(b3.plugin.Plugin):
             client.message('^7invalid data, try !help abum')
             return
 
-        self.debug(data)
+        # self.debug(data)
         sclient = self._adminPlugin.findClientPrompt(data, client)
         if not sclient:
             # a player matchin the name was not found, a list of closest matches will be displayed
@@ -244,7 +244,7 @@ class AbusePlugin(b3.plugin.Plugin):
             client.message('^7invalid data, try !help abak')
             return
 
-        self.debug(data)
+        # self.debug(data)
         sclient = self._adminPlugin.findClientPrompt(data, client)
         if not sclient:
             # a player matchin the name was not found, a list of closest matches will be displayed
@@ -273,7 +273,7 @@ class AbusePlugin(b3.plugin.Plugin):
             client.message('^7invalid data, try !help cmd_abuak')
             return
 
-        self.debug(data)
+        # self.debug(data)
         sclient = self._adminPlugin.findClientPrompt(data, client)
         if not sclient:
             # a player matchin the name was not found, a list of closest matches will be displayed
@@ -286,3 +286,36 @@ class AbusePlugin(b3.plugin.Plugin):
             self._autokilllist.remove(sclient.id)
         else:
             cmd.sayLoudOrPM(client, "abuak %s @%s is not in auto-kill" % (sclient.name, sclient.id))
+
+    # NOTE: setting the name on the b3 client does NOT work
+    # def cmd_rename(self, data=None, client=None, cmd=None):
+    #     """
+    #     <player> <newname> - Rename a player
+    #     """
+    #     # self.debug("rename entered")
+    #
+    #     if not data:
+    #         client.message('^7invalid data, try !help cmd_rename')
+    #         return
+    #
+    #     args = self._adminPlugin.parseUserCmd(data)
+    #     if not args:
+    #         cmd.sayLoudOrPM(client, "No new name given")
+    #         return
+    #
+    #     # self.debug(data)
+    #     # args[0] is player
+    #     # args[1] is new name
+    #     sclient = self._adminPlugin.findClientPrompt(args[0], client)
+    #     if not sclient:
+    #         # a player matchin the name was not found, a list of closest matches will be displayed
+    #         # we can exit here and the user will retry with a more specific player
+    #         return
+    #
+    #     if sclient.maxLevel >= self._immunity_level:
+    #         client.message('^7invalid target, they\'re immune')
+    #         return
+    #
+    #     self.debug("Renaming %s @%s to %s" % (sclient.name, sclient.id, args[1]))
+    #     cmd.sayLoudOrPM(client, "Renaming %s @%s to %s" % (sclient.name, sclient.id, args[1]))
+    #     sclient.name = args[1]
