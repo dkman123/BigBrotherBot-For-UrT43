@@ -253,6 +253,7 @@ class FlagannouncePlugin(b3.plugin.Plugin):
             # this catches the original map load
             self._warmup = False
 
+            # to shuffle during warm up
             # shuffle if the score difference is set and the difference is at least that value
             if self._shuffle_score_diff > 0 and abs(self._red_score - self._blue_score) >= self._shuffle_score_diff:
                 self.debug("FlagAnnounce: turning random order off")
@@ -270,9 +271,29 @@ class FlagannouncePlugin(b3.plugin.Plugin):
                 # start a thread to wait and run skuffle after the delay
                 bt = threading.Thread(target=randomshuffle_thread, args=(self,))
                 bt.start()
+
         else:
             # this runs after warmup ends
             self._mapname = self.console.getMap()
+
+            # # to shuffle after warm up
+            # # shuffle if the score difference is set and the difference is at least that value
+            # if self._shuffle_score_diff > 0 and abs(self._red_score - self._blue_score) >= self._shuffle_score_diff:
+            #     self.debug("FlagAnnounce: turning random order off")
+            #     # random order doesn't seem to do anything
+            #     #    self.console.setCvar('g_randomorder', 0)
+            #     # skill shuffle at the very beginning of a map doesn't do anything
+            #     #     self.debug("FlagAnnounce: shuffling due to last map cap difference %s >= %s"
+            #     #                % (abs(self._red_score - self._blue_score), self._shuffle_score_diff))
+            #     #     # start a thread to wait and run skuffle after the delay
+            #     #     bt = threading.Thread(target=skuffle_thread, args=(self,))
+            #     #     bt.start()
+            #     # do a true random shuffle
+            #     self.debug("FlagAnnounce: shuffling due to last map cap difference %s >= %s"
+            #                % (abs(self._red_score - self._blue_score), self._shuffle_score_diff))
+            #     # start a thread to wait and run skuffle after the delay
+            #     bt = threading.Thread(target=randomshuffle_thread, args=(self,))
+            #     bt.start()
 
             self._red_score = 0
             self._blue_score = 0
