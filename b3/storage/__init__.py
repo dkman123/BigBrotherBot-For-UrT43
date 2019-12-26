@@ -45,6 +45,24 @@ class mapresult(object):
             # self.createddate = None
 
 
+# started the process of having it save abuse targets, but never finished it
+# class abuseresult(object):
+#     # initialization function
+#     def __init__(self, client_id, abusetype, createddate, id):
+#         if id:
+#             self.id = id
+#         else:
+#             self.id = 0
+#             # self.id = None
+#         self.client_id = client_id
+#         self.abusetype = abusetype
+#         if createddate:
+#             self.createddate = createddate
+#         else:
+#             self.createddate = datetime.datetime.now().strftime("%Y-%m-%d %H:%M")
+#             # self.createddate = None
+
+
 class Storage(object):
 
     console = None

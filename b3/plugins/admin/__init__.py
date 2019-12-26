@@ -834,6 +834,7 @@ class AdminPlugin(b3.plugin.Plugin):
             if req and not (parms and len(parms)):
                 return None
 
+            # if it starts and ends with apostrophe, then strip the apostrophes
             if cid[:1] == "'" and cid[-1:] == "'":
                 cid = cid[1:-1]
 

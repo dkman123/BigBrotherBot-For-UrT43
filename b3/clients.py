@@ -1344,8 +1344,9 @@ class Clients(dict):
         """
         clist = []
         for cid, c in self.items():
-            if not c.hide:
-                clist.append(c)
+            # DK (hide is hiding CI connections)
+            #if not c.hide:
+            clist.append(c)
         return clist
 
     def getClientsByLevel(self, min=0, max=100, masked=False):
@@ -1358,9 +1359,11 @@ class Clients(dict):
         clist = []
         minlevel, maxlevel = int(min), int(max)
         for cid, c in self.items():
-            if c.hide:
-                continue
-            elif not masked and c.maskGroup and minlevel <= c.maskGroup.level <= maxlevel:
+            # DK (hide is hiding CI connections)
+            # if c.hide:
+            #     continue
+            # elif
+            if not masked and c.maskGroup and minlevel <= c.maskGroup.level <= maxlevel:
                 clist.append(c)
             elif not masked and c.maskGroup:
                 continue
@@ -1378,7 +1381,10 @@ class Clients(dict):
         needle = re.sub(r'\s', '', name.lower())
         for cid,c in self.items():
             cleanname = re.sub(r'\s', '', c.name.lower())
-            if not c.hide and needle in cleanname:
+        # DK: this was making clients with 999 (aka, CI connections) untargetable by B3
+        # DK (hide is hiding CI connections)
+        #    if not c.hide and needle in cleanname:
+            if needle in cleanname:
                 clist.append(c)
         return clist
 
@@ -1389,7 +1395,9 @@ class Clients(dict):
         """
         name = name.lower()
         for cid,c in self.items():
-            if not c.hide and string.find(c.name.lower(), name) != -1:
+            # DK (hide is hiding CI connections)
+            # if not c.hide and string.find(c.name.lower(), name) != -1:
+            if string.find(c.name.lower(), name) != -1:
                 return c
         return None
 
@@ -1400,7 +1408,9 @@ class Clients(dict):
         """
         clist = []
         for cid,c in self.items():
-            if not c.hide and c.state == state:
+            # DK (hide is hiding CI connections)
+            # if not c.hide and c.state == state:
+            if c.state == state:
                 clist.append(c)
         return clist
 
@@ -1440,20 +1450,26 @@ class Clients(dict):
         :param handle: The handle to use for the search
         """
         handle = handle.strip()
+        # if it's all numbers look by client ID
         if re.match(r'^[0-9]+$', handle):
             # seems to be a client id
             client = self.getByCID(handle)
             if client:
                 return [client]
             return []
+        # if it is @ followed by all numbers, look by B3 ID
         elif re.match(r'^@([0-9]+)$', handle):
             return self.getByDB(handle)
+        # if it starts with backslash, look by (B3 name?)
         elif handle[:1] == '\\':
             c = self.getByName(handle[1:])
-            if c and not c.hide:
+            # DK (hide is hiding CI connections)
+            # if c and not c.hide:
+            if c:
                 return [c]
             return []
         else:
+            # else, look by client name
             return self.getClientsByName(handle)
 
     def getByGUID(self, guid):
@@ -1520,7 +1536,9 @@ class Clients(dict):
         """
         # first check connected users
         c = self.getClientLikeName(name)
-        if c and not c.hide:
+        # DK (hide is hiding CI connections)
+        # if c and not c.hide:
+        if c:
             return [c]
 
         name = self.escape_string(name)
@@ -1623,8 +1641,9 @@ class Clients(dict):
         """
         self.resetIndex()
         for cid, c in self.items():
-            if not c.hide:
-                del self[cid]
+            # DK (hide is hiding CI connections)
+            # if not c.hide:
+            del self[cid]
 
     def sync(self):
         """

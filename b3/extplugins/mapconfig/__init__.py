@@ -388,6 +388,10 @@ class MapconfigPlugin(b3.plugin.Plugin):
 		# 	return
 
 		mapname = self.console.getMap()
+		# try to catch when it wants to pop right at the beginning of a map.
+		# it would mistakenly list the first 3 in the cycle because it didn't catch the current map correctly
+		if not mapname or mapname == "":
+			return
 		g_nextmap = self.console.getNextMap()
 
 		# if nothing changed, just cough up the last string

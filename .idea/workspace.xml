@@ -1,0 +1,333 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="ChangeListManager">
+    <list default="true" id="53b93ac2-9bd3-4ade-ac52-da872ed65d5f" name="Default Changelist" comment="">
+      <change afterPath="$PROJECT_DIR$/b3/extplugins/mapconfig/sql/b3_mapconfig-1.2.3.sql" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/b3/clients.py" beforeDir="false" afterPath="$PROJECT_DIR$/b3/clients.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/b3/extplugins/mapconfig/__init__.py" beforeDir="false" afterPath="$PROJECT_DIR$/b3/extplugins/mapconfig/__init__.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/b3/plugins/admin/__init__.py" beforeDir="false" afterPath="$PROJECT_DIR$/b3/plugins/admin/__init__.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/b3/plugins/pingwatch/__init__.py" beforeDir="false" afterPath="$PROJECT_DIR$/b3/plugins/pingwatch/__init__.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/b3/storage/__init__.py" beforeDir="false" afterPath="$PROJECT_DIR$/b3/storage/__init__.py" afterDir="false" />
+    </list>
+    <option name="EXCLUDED_CONVERTED_TO_IGNORED" value="true" />
+    <option name="SHOW_DIALOG" value="false" />
+    <option name="HIGHLIGHT_CONFLICTS" value="true" />
+    <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
+    <option name="LAST_RESOLUTION" value="IGNORE" />
+  </component>
+  <component name="FileEditorManager">
+    <leaf SIDE_TABS_SIZE_LIMIT_KEY="300">
+      <file pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/b3/plugins/poweradminurt/iourt41.py">
+          <provider selected="true" editor-type-id="text-editor">
+            <state relative-caret-position="821">
+              <caret line="2095" column="59" selection-start-line="2095" selection-start-column="46" selection-end-line="2095" selection-end-column="59" />
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/b3/extplugins/mapconfig/sql/b3_mapconfig-1.2.2.sql">
+          <provider selected="true" editor-type-id="text-editor">
+            <state relative-caret-position="51">
+              <caret line="3" column="1" selection-start-line="3" selection-start-column="1" selection-end-line="6" />
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/b3/extplugins/mapconfig/sql/b3_mapconfig-1.2.3.sql">
+          <provider selected="true" editor-type-id="text-editor">
+            <state relative-caret-position="85">
+              <caret line="5" column="41" lean-forward="true" selection-start-line="4" selection-end-line="5" selection-end-column="70" />
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/b3/extplugins/mapconfig/__init__.py">
+          <provider selected="true" editor-type-id="text-editor">
+            <state relative-caret-position="105">
+              <caret line="390" selection-start-line="390" selection-end-line="393" selection-end-column="18" />
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/b3/plugins/pingwatch/__init__.py">
+          <provider selected="true" editor-type-id="text-editor">
+            <state relative-caret-position="905">
+              <caret line="188" column="12" selection-start-line="188" selection-start-column="12" selection-end-line="188" selection-end-column="12" />
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/b3/plugins/admin/__init__.py">
+          <provider selected="true" editor-type-id="text-editor">
+            <state relative-caret-position="81">
+              <caret line="799" column="43" selection-start-line="799" selection-start-column="43" selection-end-line="799" selection-end-column="43" />
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/b3/clients.py">
+          <provider selected="true" editor-type-id="text-editor">
+            <state relative-caret-position="472">
+              <caret line="1362" column="24" lean-forward="true" selection-start-line="1362" selection-start-column="24" selection-end-line="1362" selection-end-column="24" />
+              <folding>
+                <element signature="e#42402#42954#0" />
+                <element signature="e#42993#43515#0" />
+                <element signature="e#43576#44318#0" />
+                <element signature="e#45188#45904#0" />
+                <element signature="e#45948#46387#0" />
+                <element signature="e#46423#46563#0" />
+              </folding>
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file pinned="false" current-in-tab="true">
+        <entry file="file://$PROJECT_DIR$/b3/storage/__init__.py">
+          <provider selected="true" editor-type-id="text-editor">
+            <state relative-caret-position="323">
+              <caret line="61" column="2" selection-start-line="61" selection-start-column="2" selection-end-line="61" selection-end-column="2" />
+            </state>
+          </provider>
+        </entry>
+      </file>
+    </leaf>
+  </component>
+  <component name="FindInProjectRecents">
+    <findStrings>
+      <find>Switching ma</find>
+      <find>unfair</find>
+      <find>cmd_upcoming</find>
+      <find>parseu</find>
+      <find>getclientsbyn</find>
+      <find>no_players</find>
+      <find>.hide</find>
+    </findStrings>
+    <dirStrings>
+      <dir>W:\Software\Urt_Server\git\BigBrotherBot-For-UrT43\b3</dir>
+    </dirStrings>
+  </component>
+  <component name="Git.Settings">
+    <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
+  </component>
+  <component name="IdeDocumentHistory">
+    <option name="CHANGED_PATHS">
+      <list>
+        <option value="$PROJECT_DIR$/b3/extplugins/mapconfig/sql/b3_mapconfig-1.2.2.sql" />
+        <option value="$PROJECT_DIR$/b3/extplugins/mapconfig/__init__.py" />
+        <option value="$PROJECT_DIR$/b3/plugins/admin/__init__.py" />
+        <option value="$PROJECT_DIR$/b3/plugins/pingwatch/__init__.py" />
+        <option value="$PROJECT_DIR$/b3/clients.py" />
+        <option value="$PROJECT_DIR$/b3/storage/__init__.py" />
+      </list>
+    </option>
+  </component>
+  <component name="ProjectConfigurationFiles">
+    <option name="files">
+      <list>
+        <option value="$PROJECT_DIR$/.idea/BigBrotherBot-For-UrT43.iml" />
+        <option value="$PROJECT_DIR$/.idea/misc.xml" />
+        <option value="$PROJECT_DIR$/.idea/vcs.xml" />
+        <option value="$PROJECT_DIR$/.idea/modules.xml" />
+      </list>
+    </option>
+  </component>
+  <component name="ProjectFrameBounds">
+    <option name="x" value="1384" />
+    <option name="y" value="517" />
+    <option name="width" value="2313" />
+    <option name="height" value="1551" />
+  </component>
+  <component name="ProjectView">
+    <navigator proportions="" version="1">
+      <foldersAlwaysOnTop value="true" />
+    </navigator>
+    <panes>
+      <pane id="Scope" />
+      <pane id="ProjectPane">
+        <subPane>
+          <expand>
+            <path>
+              <item name="BigBrotherBot-For-UrT43" type="b2602c69:ProjectViewProjectNode" />
+              <item name="BigBrotherBot-For-UrT43" type="462c0819:PsiDirectoryNode" />
+            </path>
+            <path>
+              <item name="BigBrotherBot-For-UrT43" type="b2602c69:ProjectViewProjectNode" />
+              <item name="BigBrotherBot-For-UrT43" type="462c0819:PsiDirectoryNode" />
+              <item name="b3" type="462c0819:PsiDirectoryNode" />
+            </path>
+            <path>
+              <item name="BigBrotherBot-For-UrT43" type="b2602c69:ProjectViewProjectNode" />
+              <item name="BigBrotherBot-For-UrT43" type="462c0819:PsiDirectoryNode" />
+              <item name="b3" type="462c0819:PsiDirectoryNode" />
+              <item name="storage" type="462c0819:PsiDirectoryNode" />
+            </path>
+          </expand>
+          <select />
+        </subPane>
+      </pane>
+    </panes>
+  </component>
+  <component name="PropertiesComponent">
+    <property name="last_opened_file_path" value="$PROJECT_DIR$/b3/extplugins/mapconfig/sql" />
+  </component>
+  <component name="RecentsManager">
+    <key name="CopyFile.RECENT_KEYS">
+      <recent name="U:\Software\Urt_Server\git\BigBrotherBot-For-UrT43\b3\extplugins\mapconfig\sql" />
+    </key>
+  </component>
+  <component name="RunDashboard">
+    <option name="ruleStates">
+      <list>
+        <RuleState>
+          <option name="name" value="ConfigurationTypeDashboardGroupingRule" />
+        </RuleState>
+        <RuleState>
+          <option name="name" value="StatusDashboardGroupingRule" />
+        </RuleState>
+      </list>
+    </option>
+  </component>
+  <component name="RunManager">
+    <configuration name="Unittests in tests" type="tests" factoryName="Unittests" temporary="true" nameIsGenerated="true">
+      <module name="BigBrotherBot-For-UrT43" />
+      <option name="INTERPRETER_OPTIONS" value="" />
+      <option name="PARENT_ENVS" value="true" />
+      <option name="SDK_HOME" value="" />
+      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$/tests" />
+      <option name="IS_MODULE_SDK" value="true" />
+      <option name="ADD_CONTENT_ROOTS" value="true" />
+      <option name="ADD_SOURCE_ROOTS" value="true" />
+      <option name="_new_additionalArguments" value="&quot;&quot;" />
+      <option name="_new_target" value="&quot;$PROJECT_DIR$/tests&quot;" />
+      <option name="_new_targetType" value="&quot;PATH&quot;" />
+      <method v="2" />
+    </configuration>
+    <recent_temporary>
+      <list>
+        <item itemvalue="Python tests.Unittests in tests" />
+      </list>
+    </recent_temporary>
+  </component>
+  <component name="SvnConfiguration">
+    <configuration />
+  </component>
+  <component name="TaskManager">
+    <task active="true" id="Default" summary="Default task">
+      <changelist id="53b93ac2-9bd3-4ade-ac52-da872ed65d5f" name="Default Changelist" comment="" />
+      <created>1570563023875</created>
+      <option name="number" value="Default" />
+      <option name="presentableId" value="Default" />
+      <updated>1570563023875</updated>
+    </task>
+    <servers />
+  </component>
+  <component name="TestHistory">
+    <history-entry file="Unittests_in_tests - 2019.10.08 at 15h 44m 25s.xml">
+      <configuration name="Unittests in tests" configurationId="tests" />
+    </history-entry>
+  </component>
+  <component name="ToolWindowManager">
+    <frame x="923" y="345" width="1542" height="1034" extended-state="0" />
+    <editor active="true" />
+    <layout>
+      <window_info active="true" content_ui="combo" id="Project" order="0" visible="true" weight="0.249668" />
+      <window_info id="Structure" order="1" side_tool="true" weight="0.25" />
+      <window_info id="Favorites" order="2" side_tool="true" />
+      <window_info anchor="bottom" id="Messages" />
+      <window_info anchor="bottom" id="Message" order="0" />
+      <window_info anchor="bottom" id="Find" order="1" />
+      <window_info anchor="bottom" id="Run" order="2" weight="0.32890365" />
+      <window_info anchor="bottom" id="Debug" order="3" weight="0.4" />
+      <window_info anchor="bottom" id="Cvs" order="4" weight="0.25" />
+      <window_info anchor="bottom" id="Inspection" order="5" weight="0.4" />
+      <window_info anchor="bottom" id="TODO" order="6" />
+      <window_info anchor="bottom" id="Version Control" order="7" />
+      <window_info anchor="bottom" id="Terminal" order="8" />
+      <window_info anchor="bottom" id="Event Log" order="9" side_tool="true" visible="true" weight="0.32890365" />
+      <window_info anchor="bottom" id="Python Console" order="10" />
+      <window_info anchor="right" id="Commander" internal_type="SLIDING" order="0" type="SLIDING" weight="0.4" />
+      <window_info anchor="right" id="Ant Build" order="1" weight="0.25" />
+      <window_info anchor="right" content_ui="combo" id="Hierarchy" order="2" weight="0.25" />
+    </layout>
+  </component>
+  <component name="editorHistoryManager">
+    <entry file="file://$PROJECT_DIR$/b3/extplugins/mapconfig/sql/b3_mapconfig-1.2.1.sql">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="204">
+          <caret line="12" column="2" selection-start-line="12" selection-start-column="2" selection-end-line="12" selection-end-column="48" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/b3/plugins/poweradminurt/iourt41.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="821">
+          <caret line="2095" column="59" selection-start-line="2095" selection-start-column="46" selection-end-line="2095" selection-end-column="59" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/b3/extplugins/mapconfig/sql/b3_mapconfig-1.2.2.sql">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="51">
+          <caret line="3" column="1" selection-start-line="3" selection-start-column="1" selection-end-line="6" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/b3/extplugins/mapconfig/sql/b3_mapconfig-1.2.3.sql">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="85">
+          <caret line="5" column="41" lean-forward="true" selection-start-line="4" selection-end-line="5" selection-end-column="70" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/b3/extplugins/mapconfig/__init__.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="105">
+          <caret line="390" selection-start-line="390" selection-end-line="393" selection-end-column="18" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/b3/plugins/pingwatch/__init__.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="905">
+          <caret line="188" column="12" selection-start-line="188" selection-start-column="12" selection-end-line="188" selection-end-column="12" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/b3/plugins/admin/__init__.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="81">
+          <caret line="799" column="43" selection-start-line="799" selection-start-column="43" selection-end-line="799" selection-end-column="43" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/b3/clients.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="472">
+          <caret line="1362" column="24" lean-forward="true" selection-start-line="1362" selection-start-column="24" selection-end-line="1362" selection-end-column="24" />
+          <folding>
+            <element signature="e#42402#42954#0" />
+            <element signature="e#42993#43515#0" />
+            <element signature="e#43576#44318#0" />
+            <element signature="e#45188#45904#0" />
+            <element signature="e#45948#46387#0" />
+            <element signature="e#46423#46563#0" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/b3/storage/__init__.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="323">
+          <caret line="61" column="2" selection-start-line="61" selection-start-column="2" selection-end-line="61" selection-end-column="2" />
+        </state>
+      </provider>
+    </entry>
+  </component>
+</project>
