@@ -46,6 +46,8 @@ class PingwatchPlugin(b3.plugin.Plugin):
     _ignoreTill = 0
     _maxCiPing = 500
 
+    _immunity_level = None
+
     ####################################################################################################################
     #                                                                                                                  #
     #    STARTUP                                                                                                       #
@@ -83,6 +85,16 @@ class PingwatchPlugin(b3.plugin.Plugin):
         except ValueError, e:
             self.error('could not load settings/max_ping_duration config value: %s' % e)
             self.debug('using default value (%s) for settings/max_ping_duration' % self._maxPingDuration)
+
+        try:
+            self._immunity_level = self.config.getint('settings', 'immunity_level')
+            self.debug('loaded settings/immunity_level: %s' % self._immunity_level)
+        except NoOptionError:
+            self.warning('could not find settings/immunity_level in config file, '
+                         'using default: %s' % self._immunity_level)
+        except KeyError, e:
+            self.error('could not load settings/immunity_level config value: %s' % e)
+            self.debug('using default value (%s) for settings/immunity_level' % self._immunity_level)
 
     def onStartup(self):
         """
@@ -149,7 +161,7 @@ class PingwatchPlugin(b3.plugin.Plugin):
                 continue
 
             client = self.console.clients.getByCID(cid)
-            if not client:
+            if not client or client.maxLevel >= self._immunity_level:
                 continue
 
             if not client.isvar(self, 'highping'):
