@@ -726,6 +726,8 @@ class Client(object):
             ban.keyword = keyword
             ban.reason = reason
             ban.timeExpire = self.console.time() + (duration * 60)
+            self.console.verbose2("in tempban for CID %s reason %s" % (ban.clientId, ban.reason))
+
             ban.save(self.console)
 
     def message(self, msg, *args):

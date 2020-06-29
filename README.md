@@ -61,6 +61,11 @@ Game servers supported:
 ## Installation, configuration and usage
 
 Please refer to our documentation wiki as linked above for a full manual.
+(that page doesn't exist any longer)
+see https://github.com/dkman123/UrT_Server_Setup/blob/master/B3.md
+Just for reference, there are SQL parts, then:
+python setup.py build
+sudo python setup.py install
 
 
 ## Previous and Current Developers (Hall of Fame)
@@ -85,3 +90,8 @@ incidental basis. Without you B3 wouldn't be this intelligent!
 [Just a baka]: https://github.com/justabaka
 [Fenix]: https://github.com/danielepantaleone
 [Ozon]: https://github.com/ozon
+
+## maintenance
+isopropanol has made some tweaks to this lately
+https://github.com/dkman123
+dkman123 at hotmail.com
