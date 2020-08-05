@@ -106,6 +106,7 @@ class Poweradminurt41Plugin(b3.plugin.Plugin):
     _hs_tempban_percent = 50
     _hs_tempban_time = 120
     _hs_tempban_immunity_level = 2
+    _hs_tempban_disable_gear_length = 23
 
     _rmenable = False
     _dontcount = 0
@@ -441,6 +442,7 @@ class Poweradminurt41Plugin(b3.plugin.Plugin):
         self._hs_tempban_percent = self.getSetting('headshotcounter', 'hs_tempban_percent', b3.INT, self._hs_tempban_percent)
         self._hs_tempban_time = self.getSetting('headshotcounter', 'hs_tempban_time', b3.INT, self._hs_tempban_time)
         self._hs_tempban_immunity_level = self.getSetting('headshotcounter', 'hs_tempban_immunity_level', b3.INT, self._hs_tempban_immunity_level)
+        self._hs_tempban_disable_gear_length = self.getSetting('headshotcounter', 'hs_tempban_disable_gear_length', b3.INT, self._hs_tempban_disable_gear_length)
 
         # making sure loghits is enabled to count headshots
         if self._hsenable:
@@ -2487,7 +2489,7 @@ class Poweradminurt41Plugin(b3.plugin.Plugin):
                 t = victim.var(self, 'headhitted').value + 1
                 victim.setvar(self, 'headhitted', t)
 
-            # helmethits
+            # helmet hits
             elif hitloc == self._hitlocations['HL_HELMET']:
                 t = attacker.var(self, 'helmethits').value + 1
                 attacker.setvar(self, 'helmethits', t)
@@ -2511,11 +2513,16 @@ class Poweradminurt41Plugin(b3.plugin.Plugin):
                     message = ('^2%s^7: %s %s!' % (attacker.name, int(headshots), hstext))
 
                 # self.verbose("%s [lvl %d] landed %d headshots (%d pct)" % (event.client.name, event.client.maxLevel, headshots, percentage))
-                if self._hs_tempban and headshots > self._hs_tempban_nr and \
-                        event.client.maxLevel < self._hs_tempban_immunity_level and percentage > self._hs_tempban_percent:
-                    self.info("Temp Banning %s for excessive headshots (naughty monkey, aimbot detected)", event.client.name)
-                    event.client.tempban(reason = "naughty monkey, aimbot detected", duration = self._hs_tempban_time)
-                    self.console.say("%s is a ^6naughty monkey^7. ^1aimbot detected" % event.client.name)
+                if self._hs_tempban and headshots > self._hs_tempban_nr \
+                        and event.client.maxLevel < self._hs_tempban_immunity_level \
+                        and percentage > self._hs_tempban_percent:
+                    gearstring = self.console.getCvar('g_gear').getString()
+                    # self.verbose("gearstring length: %d. test < %d", len(gearstring), self._hs_tempban_disable_gear_length)
+                    if len(gearstring) < self._hs_tempban_disable_gear_length:
+                        self.info("Temp Banning %s for excessive headshots (naughty monkey, aimbot detected)", event.client.name)
+                        event.client.tempban(reason = "naughty monkey, aimbot detected", duration = self._hs_tempban_time)
+                        # event.client.kick("temp kick in place of temp ban")
+                        self.console.say("%s is a ^6naughty monkey^7. ^1aimbot detected" % event.client.name)
 
                 if self._hsbroadcast:
                     self.console.write(message)
