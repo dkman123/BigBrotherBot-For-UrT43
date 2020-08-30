@@ -68,6 +68,7 @@ class MapconfigPlugin(b3.plugin.Plugin):
 	_up_mapname = ""
 	_up_nextmap = ""
 	_up_next3 = ""
+	_startmessage = ""
 
 	####################################################################################################################
 	#                                                                                                                  #
@@ -261,6 +262,10 @@ class MapconfigPlugin(b3.plugin.Plugin):
 		self.console.write('g_friendlyfire %s ' % (mapconfig["g_friendlyfire"]))
 		if mapconfig["startmessage"] and mapconfig["startmessage"] != "":
 			self.console.say('Map Start Message: ^8%s' % (mapconfig["startmessage"]))
+			self._startmessage = mapconfig["startmessage"]
+		else:
+			self._startmessage = self.default_startmessage
+
 		# self.debug('onNewMap updated successfully')
 
 		# I want to have it perform an @gear command if gear limits are on
@@ -439,3 +444,8 @@ class MapconfigPlugin(b3.plugin.Plugin):
 		else:
 			cmd.sayLoudOrPM(client, '^7Upcoming not found')
 
+	def cmd_startmessage(self, data=None, client=None, cmd=None):
+		"""
+		Repeat the start message from the mapconfig table.
+		"""
+		self.console.say('Map Start Message: ^8%s' % self._startmessage)
