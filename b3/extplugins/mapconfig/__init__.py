@@ -23,6 +23,7 @@
 # ################################################################### #
 
 # 2019.05.29 try a getCmd for pagear
+# 2020.11.20 add timelimit
 
 __version__ = '0.1'
 __author__ = 'isopropanol'
@@ -57,6 +58,7 @@ class MapconfigPlugin(b3.plugin.Plugin):
 	default_g_gravity = 800
 	default_g_friendlyfire = 2
 	default_startmessage = ""
+	default_timelimit = 20
 
 	mapcycle_fileName = ""
 	# last modified timestamp
@@ -159,6 +161,13 @@ class MapconfigPlugin(b3.plugin.Plugin):
 
 		self.debug('mapcycle_fileName : %s' % self.mapcycle_fileName)
 
+		try:
+			self.default_timelimit = self.config.getint('settings', 'default_timelimit')
+		except (NoOptionError, ValueError):
+			self.default_timelimit = 0
+
+		self.debug('default_timelimit : %s' % self.default_timelimit)
+
 		self.mapcycle = ""
 
 	####################################################################################################################
@@ -227,6 +236,7 @@ class MapconfigPlugin(b3.plugin.Plugin):
 		mapconfig["g_gravity"] = int(row['g_gravity'])
 		mapconfig["g_friendlyfire"] = int(row['g_friendlyfire'])
 		mapconfig["startmessage"] = row['startmessage']
+		mapconfig["timelimit"] = row['timelimit']
 	
 		return mapconfig
 
@@ -247,7 +257,8 @@ class MapconfigPlugin(b3.plugin.Plugin):
 					 "g_gear": self.default_g_gear, \
 					 "g_gravity": self.default_g_gravity, \
 					 "g_friendlyfire": self.default_g_friendlyfire, \
-					 "startmessage": self.default_startmessage }
+					 "startmessage": self.default_startmessage, \
+					 "timelimit": self.default_timelimit }
 
 		mapconfig = self.getMapconfig(mapconfig)
 		# if mapconfig["id"] > 0:
@@ -265,6 +276,7 @@ class MapconfigPlugin(b3.plugin.Plugin):
 			self._startmessage = mapconfig["startmessage"]
 		else:
 			self._startmessage = self.default_startmessage
+		self.console.write('timelimit %s ' % (mapconfig["timelimit"]))
 
 		# self.debug('onNewMap updated successfully')
 
