@@ -164,7 +164,7 @@ class MapconfigPlugin(b3.plugin.Plugin):
 		try:
 			self.default_timelimit = self.config.getint('settings', 'default_timelimit')
 		except (NoOptionError, ValueError):
-			self.default_timelimit = 0
+			self.default_timelimit = 20
 
 		self.debug('default_timelimit : %s' % self.default_timelimit)
 

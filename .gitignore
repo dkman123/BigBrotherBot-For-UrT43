@@ -137,4 +137,7 @@ $RECYCLE.BIN/
 
 # Windows shortcuts
 *.lnk
+
+# Project files
 b3/.idea
+.idea/workspace.xml
