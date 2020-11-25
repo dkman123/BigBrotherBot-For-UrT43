@@ -78,6 +78,9 @@ class FlagannouncePlugin(b3.plugin.Plugin):
     _start_time = None
     _low_player = 99
     _high_player = 0
+    _flag_smite = False
+    _flag_smite_taunt = False
+    _flag_smite_quote = ["A flag has been captured", "Hulk smash", "Thou hast offended me", "Red is going to win", "Blue is going to win"]
 
     ####################################################################################################################
     #                                                                                                                  #
@@ -165,6 +168,16 @@ class FlagannouncePlugin(b3.plugin.Plugin):
             self.error('could not load settings/capture_map_results config value: %s' % e)
             self.debug('using default value (%s) for settings/capture_map_results' % self._capture_map_results)
 
+        try:
+            self._flag_smite = self.getSetting('settings', 'flag_smite', b3.BOOL, self._flag_smite)
+        except (NoOptionError, ValueError):
+            self._flag_smite = False
+
+        try:
+            self._flag_smite_taunt = self.getSetting('settings', 'flag_smite_taunt', b3.BOOL, self._flag_smite_taunt)
+        except (NoOptionError, ValueError):
+            self._flag_smite_taunt = False
+
     ####################################################################################################################
     #                                                                                                                  #
     #   EVENTS                                                                                                         #
@@ -188,9 +201,11 @@ class FlagannouncePlugin(b3.plugin.Plugin):
             elif self._has_blue == event.client.cid:
                 self._has_blue = -1
         if event.data == 'team_CTF_redflag':
+            # flag grabbed
             self._has_red = event.client.cid
             # self.debug("DK: _has_red %s" % self._has_red)
         elif event.data == 'team_CTF_blueflag':
+            # flag grabbed
             self._has_blue = event.client.cid
             # self.debug("DK: _has_blue %s" % self._has_blue)
         if event.data in 'flag_captured':
@@ -235,6 +250,20 @@ class FlagannouncePlugin(b3.plugin.Plugin):
                     self.debug("Running balance now")
                     self._balance_now_map = mapName
                     self._poweradminPlugin.cmd_pabalance()
+
+            if self._flag_smite:
+                # kill players after a cap
+                clients = self.console.clients.getList()
+                pos = 0
+                while pos < len(clients):
+                    self.console.write("smite %s" % clients[pos].cid)
+                    pos = pos + 1
+                if self._flag_smite_taunt:
+                    # say a random taunt
+                    pos = random.randint(0, len(self._flag_smite_quote) - 1)
+                    # self.debug("FlagAnnounce chose quote [%s] %s" % (pos, self._flag_smite_quote[pos]))
+                    self.console.write('bigtext "%s"' % self._flag_smite_quote[pos])
+                    # self.console.say("%s" % self._flag_smite_quote[pos])
 
             # randomorder doesn't seem to do anything
             # if (self._red_score == caplimit or self._blue_score == caplimit):
@@ -387,7 +416,6 @@ class FlagannouncePlugin(b3.plugin.Plugin):
         cmd.sayLoudOrPM(client, '^7FlagAnnounce set %s ^1Red %s^7, ^4Blue %s^7. Low-High %s-%s'
                         % (self._mapname, self._red_score, self._blue_score, self._low_player, self._high_player))
 
-
     def cmd_fashow(self, data=None, client=None, cmd=None):
         """
         Show the scores, low-high player count, and map start time (using server time).
@@ -503,7 +531,6 @@ class FlagannouncePlugin(b3.plugin.Plugin):
             self.debug("RandomShuffle swapping %s %s" % (hold_red, hold_blue))
             self.console.write('swap %s %s' % (hold_red, hold_blue))
 
-
     def cmd_teamswap(self, data=None, client=None, cmd=None):
         """
         Swap full teams.  Red to Blue and Blue to Red
@@ -554,3 +581,23 @@ class FlagannouncePlugin(b3.plugin.Plugin):
             self.debug("TeamSwap swapping %s %s" % (redplayer, blueplayer))
             self.console.write('swap %s %s' % (redplayer, blueplayer))
             pos += step
+
+    def cmd_flagsmite(self, data=None, client=None, cmd=None):
+        """
+        Turn Flag Smite on (1) or off (0) You can also use on/off.
+        """
+        # self.debug("flagsmite entered")
+
+        m = self._adminPlugin.parseUserCmd(data)
+        if not m:
+            client.message('^7Missing data, try !help flagsmite')
+            return False
+
+        opt = m[0].lower()
+        self.debug("flagsmite: setting to %s" % (opt))
+        if opt == "1" or opt == "on" or opt == "true":
+            self._flag_smite = True
+            self.console.say('Flag Smite is %s ' % "on")
+        else:
+            self._flag_smite = False
+            self.console.say('Flag Smite is %s ' % "off")
