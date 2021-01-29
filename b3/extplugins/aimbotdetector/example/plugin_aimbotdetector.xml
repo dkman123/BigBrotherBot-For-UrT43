@@ -25,6 +25,7 @@
 		Number of killstreak for the specific hitlocation(s). When the number
 		specified here is reached, an action will be triggered depending
 		on your selection in action setting.
+		Yes, it's spelled wrong, but leave it that way.
 		-->
 		<set name="treshold">10</set>
 		<!--

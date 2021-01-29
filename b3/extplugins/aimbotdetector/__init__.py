@@ -80,25 +80,30 @@ class AimbotdetectorPlugin(b3.plugin.Plugin):
                 self._hitlocs.append(_hl._hitloc)
                 self.debug('Checking hitlocation :: %s' % _hl._hitloc)
         except:
-            self._hitlocs = ['head']
-            self.debug('Using default hitlocation :: head')
+            self._hitlocs = ['1']
+            self.debug('Using default hitlocation :: 1')
+
+        # Yes, it's spelled wrong, but leave it that way.
         try:
             self.treshold = self.config.getint('settings', 'treshold')
         except:
             self.treshold = 15
             self.debug = ('Using default treshold value (%s)' % self.treshold)
         # self.debug('Players with %s %s kills in a row will be detected by Aimbot Detector' % (self.treshold, self.hitloc))
+
         try:
             self.adminlevel = self.config.getint('settings', 'adminlevel')
         except:
             self.adminlevel = 40
             self.debug = ('Using default adminlevel value (%s)' % self.adminlevel)
+
         try:
             self.ignorelevel = self.config.getint('settings', 'ignorelevel')
         except:
             self.ignorelevel = 40
             self.debug = ('Using default ignorelevel value (%s)' % self.ignorelevel)
         self.debug('Players with level %s and above will not be checked' % self.ignorelevel)
+
         try:
             self.action = self.config.getint('settings', 'action')
         except:
@@ -201,7 +206,7 @@ class AimbotdetectorPlugin(b3.plugin.Plugin):
 
         # client (attacker)
         if client:
-            self.warning('%s has a kill hit in %s' % (client.name, damage_location))
+            self.debug('%s has a kill hit in %s' % (client.name, damage_location))
 
             # we grab our HitlocStats object here
             # any changes to its values will be saved "automagically"
@@ -212,7 +217,7 @@ class AimbotdetectorPlugin(b3.plugin.Plugin):
             # bodyparts each time so we reset his hitloc streak
             if damage_location in self._hitlocs:
                 HitlocStats.hitloc_kills += 1
-                self.warning('%s has a %s kill streak for monitored body parts' % (client.name, HitlocStats.hitloc_kills))
+                self.debug('%s has a %s kill streak for monitored body parts' % (client.name, HitlocStats.hitloc_kills))
                 self.checkHitlocKillStreak(HitlocStats.hitloc_kills, client)
             else:
                 HitlocStats.hitloc_kills = 0
