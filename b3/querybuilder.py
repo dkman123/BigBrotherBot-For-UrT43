@@ -189,7 +189,7 @@ class QueryBuilder(object):
         :param having: The HAVING clause for this select statement.
         :param keywords: Unused at the moment.
         """
-        sql = ['SELECT %s FROM %s' % (self.fieldStr(fields), table)]
+        sql = ['SELECT %s FROM `%s`' % (self.fieldStr(fields), table)]
 
         if where:
             sql.append("WHERE %s" % self.WhereClause(where))
@@ -221,7 +221,7 @@ class QueryBuilder(object):
         if delayed:
             sql += "DELAYED "
 
-        sql += table + " SET "
+        sql += "`" + table + "` SET "
 
         sets = []
         for k, v in data.iteritems():
@@ -244,7 +244,7 @@ class QueryBuilder(object):
         if delayed:
             sql += "DELAYED "
 
-        sql += "INTO " + table
+        sql += "INTO `" + table + "`"
 
         keys = []
         values = []
@@ -268,7 +268,7 @@ class QueryBuilder(object):
         if delayed:
             sql += "DELAYED "
 
-        sql += "INTO " + table
+        sql += "INTO `" + table + "`"
 
         keys = []
         values = []
