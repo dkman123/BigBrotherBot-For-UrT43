@@ -211,6 +211,7 @@ class BanlistPlugin(b3.plugin.Plugin):
         """
         self.debug('checking slot: %s, %s, %s, %s' % (client.cid, client.name, client.ip, client.guid))
 
+        # if they're found in the whitelist then stop processing
         for whitelist in self._whitelists:
             result = whitelist.isBanned(client)
             if result is not False:
@@ -225,6 +226,11 @@ class BanlistPlugin(b3.plugin.Plugin):
             result = banlist.isBanned(client)
             if result is not False:
                 if client.maxLevel < self._immunity_level:
+                    # result holds the IP
+                    # if you want the IP masked include these 2 lines
+                    parts = result.split(".")
+                    result = parts[0] + "." + parts[1] + ".*.*"
+
                     client.kick('BANLISTED [%s] %s' % (banlist.name, result), keyword="banlist", silent=True)
                     self.info('kicking @%s %s, ip:%s, guid:%s. Found in banlist : %s' % (client.id, client.name,
                                                                                          client.ip, client.guid, banlist.name))
