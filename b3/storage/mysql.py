@@ -207,6 +207,7 @@ class MysqlStorage(DatabaseStorage):
         try:
 
             # PREFER PYMYSQL
+            self.console.bot("trying pymysql driver");
             import pymysql as mysqldriver
             cls.__bases__ = (PymysqlStorage,)
             cls.__driver = mysqldriver
@@ -215,6 +216,7 @@ class MysqlStorage(DatabaseStorage):
 
             try:
                 # BACKUP USING MYSQL.CONNECTOR
+                self.console.bot("trying mysql.connector driver");
                 import mysql.connector as mysqldriver
                 cls.__bases__ = (MysqlConnectorStorage,)
                 cls.__driver = mysqldriver
@@ -223,6 +225,7 @@ class MysqlStorage(DatabaseStorage):
 
                 try:
                     # USE MYSQLDB AS LAST OPTION
+                    self.console.bot("trying MySQLdb driver");
                     import MySQLdb as mysqldriver
                     cls.__bases__ = (MySQLdbStorage,)
                     cls.__driver = mysqldriver
@@ -276,6 +279,8 @@ class MysqlStorage(DatabaseStorage):
             # close the active connection (if any)
             self.shutdown()
             self.console.bot('Connecting to MySQL database: %(protocol)s://%(user)s:******@%(host)s:%(port)s%(path)s...', self.dsnDict)
+            # uncomment the following line to show the password
+            #self.console.bot('Using pass %(password)s', self.dsnDict)
 
             try:
                 # create the connection instance using the specified connector
