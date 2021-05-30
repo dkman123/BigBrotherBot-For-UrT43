@@ -205,9 +205,10 @@ class MysqlStorage(DatabaseStorage):
         :raise ImportError: If the system misses the necessary libraries needed to setup the storage module.
         """
         try:
+            #fil = open("/home/urt/test.txt", "w")
 
             # PREFER PYMYSQL
-            self.console.bot("trying pymysql driver");
+            #fil.write("trying pymysql driver");
             import pymysql as mysqldriver
             cls.__bases__ = (PymysqlStorage,)
             cls.__driver = mysqldriver
@@ -216,7 +217,7 @@ class MysqlStorage(DatabaseStorage):
 
             try:
                 # BACKUP USING MYSQL.CONNECTOR
-                self.console.bot("trying mysql.connector driver");
+                #fil.write("trying mysql.connector driver");
                 import mysql.connector as mysqldriver
                 cls.__bases__ = (MysqlConnectorStorage,)
                 cls.__driver = mysqldriver
@@ -225,7 +226,7 @@ class MysqlStorage(DatabaseStorage):
 
                 try:
                     # USE MYSQLDB AS LAST OPTION
-                    self.console.bot("trying MySQLdb driver");
+                    #fil.write("trying MySQLdb driver");
                     import MySQLdb as mysqldriver
                     cls.__bases__ = (MySQLdbStorage,)
                     cls.__driver = mysqldriver
@@ -238,6 +239,7 @@ class MysqlStorage(DatabaseStorage):
                                       "connectors: 'pymysql', 'python-mysql.connector', 'MySQL-python': look for "
                                       "'dependencies' in B3 documentation.")
 
+        #fil.close()
         return super(MysqlStorage, cls).__new__(cls)
 
     def __init__(self, dsn, dsnDict, console):
@@ -287,7 +289,8 @@ class MysqlStorage(DatabaseStorage):
                 self.db = self.__driver.connect(host=self.dsnDict['host'],
                                                 port=self.dsnDict['port'],
                                                 user=self.dsnDict['user'],
-                                                passwd=self.dsnDict['password'],
+                                                #passwd=self.dsnDict['password'],
+                                                password=self.dsnDict['password'],
                                                 db=self.dsnDict['path'][1:],
                                                 charset="utf8")
 
