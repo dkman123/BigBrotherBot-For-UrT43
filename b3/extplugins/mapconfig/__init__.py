@@ -271,11 +271,10 @@ class MapconfigPlugin(b3.plugin.Plugin):
 		self.console.write('g_gear "%s" ' % (mapconfig["g_gear"]))
 		self.console.write('g_gravity %s ' % (mapconfig["g_gravity"]))
 		self.console.write('g_friendlyfire %s ' % (mapconfig["g_friendlyfire"]))
-		if mapconfig["startmessage"] and mapconfig["startmessage"] != "":
-			self.console.say('Map Start Message: ^8%s' % (mapconfig["startmessage"]))
-			self._startmessage = mapconfig["startmessage"]
-		else:
-			self._startmessage = self.default_startmessage
+
+		self.buildstartmessage(mapconfig)
+
+		self.console.say(self._startmessage)
 		self.console.write('timelimit %s ' % (mapconfig["timelimit"]))
 
 		# self.debug('onNewMap updated successfully')
@@ -460,4 +459,37 @@ class MapconfigPlugin(b3.plugin.Plugin):
 		"""
 		Repeat the start message from the mapconfig table.
 		"""
-		self.console.say('Map Start Message: ^8%s' % self._startmessage)
+		# catch when b3 is reloaded and doesn't know the map.
+		if not self._startmessage or self._startmessage == "":
+			mapname = self.console.getMap()
+			self.setMapSettings(mapname)
+		else:
+			self.console.say(self._startmessage)
+
+	def buildstartmessage(self, mapconfig):
+		"""
+		Build the start message from the mapconfig table, so we don't need to rebuild it each time it's called.
+		"""
+		startmessage = mapconfig["startmessage"]
+
+		caps = mapconfig["capturelimit"]
+		if "1" == mapconfig["g_suddendeath"]:
+			overtime = "^1OT"
+		else:
+			overtime = "^3Ties"
+		if mapconfig["g_gravity"] == 800:
+			gravity = "^3normal"
+		elif mapconfig["g_gravity"] < 800:
+			gravity = "^2low"
+		else:
+			gravity = "^1high"
+
+		if mapconfig["g_friendlyfire"] == "0":
+			ff = "^2No FF"
+		else:
+			ff = "^1FF"
+
+		self._startmessage = ('Map Start Message: ^8%s^7; ^2%s ^7Caps; ^2%s^7; %s gravity^7; %s' % (
+			startmessage, caps, overtime, gravity, ff))
+
+		self.debug("StartMessage set to %s" % self._startmessage)
