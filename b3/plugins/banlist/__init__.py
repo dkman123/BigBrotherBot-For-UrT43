@@ -30,6 +30,7 @@ import b3.cron
 import b3.events
 import b3.plugin
 import codecs
+import datetime
 import gzip
 import os
 import random
@@ -54,6 +55,10 @@ class BanlistPlugin(b3.plugin.Plugin):
     _whitelists = None
     _immunity_level = None
     _auto_update = None
+    # _recent_players is a dictionary of client.id, datetime of last scan
+    _recent_players = {}
+    _store_for_minutes = 120
+    _cronTab = None
 
     ####################################################################################################################
     #                                                                                                                  #
@@ -109,8 +114,14 @@ class BanlistPlugin(b3.plugin.Plugin):
         except (NoOptionError, ValueError):
             self._auto_update = True
 
+        try:
+            self._store_for_minutes = self.config.getint('global_settings', 'store_for_minutes')
+        except (NoOptionError, ValueError):
+            self._store_for_minutes = 120
+
         self.info('immunity level : %s' % self._immunity_level)
         self.info('auto update : %s' % self._auto_update)
+        self.info('store for minutes : %s' % self._store_for_minutes)
 
         # load banlists from config
         self._banlists = []
@@ -177,6 +188,19 @@ class BanlistPlugin(b3.plugin.Plugin):
         self.debug("%d whitelists loaded" % len(self._whitelists))
         self.checkConnectedPlayers()
 
+        if self._cronTab:
+            # remove existing crontab
+            self.console.cron - self._cronTab
+
+        # (m, s) = self._get_rate_minsec(self._rate)
+        run_minutes = self._store_for_minutes
+        if run_minutes > 59:
+            run_minutes = 59
+        if run_minutes > 0:
+            self._cronTab = b3.cron.PluginCronTab(self, self.cmd_banlistcleanup, 0, '*/%s' % run_minutes)
+            self.console.cron + self._cronTab
+            self.debug("cron set for every %d minutes" % run_minutes)
+
     ####################################################################################################################
     #                                                                                                                  #
     #   EVENTS                                                                                                         #
@@ -210,6 +234,27 @@ class BanlistPlugin(b3.plugin.Plugin):
         Examine players ip-bans and allow/deny to connect.
         """
         self.debug('checking slot: %s, %s, %s, %s' % (client.cid, client.name, client.ip, client.guid))
+
+        # start chunk
+        # note: might want to move this up to onAuth so it doesn't spin up a thread
+        last_player_scanned = None
+        # if the player wasn't in the list, then add them
+        try:
+            # look for the last_player_scanned
+            last_player_scanned = self._recent_players[client.id]
+            self.debug('@%s %s was found previously scanned' % (client.id, client.name))
+        except KeyError:
+            self.debug('@%s %s was not recently scanned' % (client.id, client.name))
+            self._recent_players[client.id] = datetime.datetime.now()
+
+        if last_player_scanned is not None:
+            # check the age
+            current_time = datetime.datetime.now()
+            minutes = (current_time - last_player_scanned).seconds / 60
+            if minutes < self._store_for_minutes:
+                self.debug('@%s %s was recently checked, skipping banlist scan' % (client.id, client.name))
+                return
+        # end chunk
 
         # if they're found in the whitelist then stop processing
         for whitelist in self._whitelists:
@@ -329,6 +374,21 @@ class BanlistPlugin(b3.plugin.Plugin):
         self.checkConnectedPlayers()
         if client is not None: client.message("^4done")
 
+    def cmd_banlistcleanup(self, data=None, client=None, cmd=None):
+        """
+        Remove stale entries from the recent ly scanned list
+        """
+        self.debug("banlistcleanup entered")
+        current_time = datetime.datetime.now()
+        count = 0
+        for key in self._recent_players:
+            minutes = (current_time - self._recent_players[key]).seconds / 60
+            if minutes > self._store_for_minutes:
+                del self._recent_players[key]
+                count = count + 1
+        self.debug("%d entries culled" % count)
+        if client is not None:
+            client.message("%d entries culled" % count)
 
 class Banlist(object):
 

@@ -5,6 +5,8 @@
         <set name="immunity_level">100</set>
         <!-- do you want to update banlists that provide an URL automatically every hour ? (default: yes) -->
         <set name="auto_update">yes</set>
+		<!-- how long to store the recently scanned players, in minutes (default: 120) -->
+		<set name="store_for_minutes">120</set>
     </settings>
 
     <settings name="commands">
@@ -27,6 +29,8 @@
         <set name="banlistupdate-blupdate">superadmin</set>
         <!-- Command to force checking of connected players -->
         <set name="banlistcheck-blcheck">superadmin</set>
+		<!-- Command to clean up the recently scanned player list -->
+		<set name="banlistcleanup-blclean">superadmin</set>
     </settings>
     
     <!--
