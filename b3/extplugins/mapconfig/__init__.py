@@ -473,7 +473,7 @@ class MapconfigPlugin(b3.plugin.Plugin):
 		startmessage = mapconfig["startmessage"]
 
 		caps = mapconfig["capturelimit"]
-		if "1" == mapconfig["g_suddendeath"]:
+		if 1 == mapconfig["g_suddendeath"]:
 			overtime = "^1OT"
 		else:
 			overtime = "^3Ties"
@@ -484,7 +484,7 @@ class MapconfigPlugin(b3.plugin.Plugin):
 		else:
 			gravity = "^1high"
 
-		if mapconfig["g_friendlyfire"] == "0":
+		if 0 == mapconfig["g_friendlyfire"]:
 			ff = "^2No FF"
 		else:
 			ff = "^1FF"
