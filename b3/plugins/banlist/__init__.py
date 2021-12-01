@@ -55,7 +55,7 @@ class BanlistPlugin(b3.plugin.Plugin):
     _whitelists = None
     _immunity_level = None
     _auto_update = None
-    # _recent_players is a dictionary of client.id, datetime of last scan
+     _recent_players is a dictionary of client.id, datetime of last scan
     _recent_players = {}
     _store_for_minutes = 120
     _cronTab = None
@@ -121,7 +121,7 @@ class BanlistPlugin(b3.plugin.Plugin):
 
         self.info('immunity level : %s' % self._immunity_level)
         self.info('auto update : %s' % self._auto_update)
-        self.info('store for minutes : %s' % self._store_for_minutes)
+        #self.info('store for minutes : %s' % self._store_for_minutes)
 
         # load banlists from config
         self._banlists = []
@@ -381,11 +381,14 @@ class BanlistPlugin(b3.plugin.Plugin):
         self.debug("banlistcleanup entered")
         current_time = datetime.datetime.now()
         count = 0
+        keys_to_remove = []
         for key in self._recent_players:
             minutes = (current_time - self._recent_players[key]).seconds / 60
             if minutes > self._store_for_minutes:
-                del self._recent_players[key]
-                count = count + 1
+                keys_to_remove.append(key)
+        for elem in keys_to_remove:
+            del self._recent_players[elem]
+            count = count + 1
         self.debug("%d entries culled" % count)
         if client is not None:
             client.message("%d entries culled" % count)
