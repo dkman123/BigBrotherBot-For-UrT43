@@ -55,7 +55,7 @@ class BanlistPlugin(b3.plugin.Plugin):
     _whitelists = None
     _immunity_level = None
     _auto_update = None
-     _recent_players is a dictionary of client.id, datetime of last scan
+    # _recent_players is a dictionary of client.id, datetime of last scan
     _recent_players = {}
     _store_for_minutes = 120
     _cronTab = None
