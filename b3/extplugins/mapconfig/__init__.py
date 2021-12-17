@@ -624,7 +624,7 @@ class MapconfigPlugin(b3.plugin.Plugin):
 		lines.append('ut4_swim')
 		lines.append('ut4_thingley')
 		lines.append('ut4_tombs')
-		lines.append('ut4_toxic')
+		#lines.append('ut4_toxic')
 		lines.append('ut4_tunis')
 		lines.append('ut4_turnpike')
 		lines.append('ut4_uptown')
