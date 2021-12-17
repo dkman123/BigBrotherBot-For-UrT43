@@ -34,11 +34,24 @@ __author__ = 'isopropanol'
 import b3.plugin
 import os
 import platform
+import random
 
 # from b3 import functions
 # from b3.clients import Client
 from b3.functions import getCmd
 from ConfigParser import NoOptionError
+
+try:
+    # import the getCmd function
+    import b3.functions.getCmd as getCmd
+except ImportError:
+    # keep backward compatibility
+    def getCmd(instance, cmd):
+        cmd = 'cmd_%s' % cmd
+        if hasattr(instance, cmd):
+            func = getattr(instance, cmd)
+            return func
+        return None
 
 class MapconfigPlugin(b3.plugin.Plugin):
 	# requiresConfigFile = False
@@ -65,6 +78,9 @@ class MapconfigPlugin(b3.plugin.Plugin):
 	mapcycle_timestamp = 0
 	# the mapcycle as a string
 	mapcycle = ""
+
+	random_nextmap = 0
+	hopper_fileName = ""
 
 	# variables held to reduce processing overhead
 	_up_mapname = ""
@@ -168,6 +184,20 @@ class MapconfigPlugin(b3.plugin.Plugin):
 
 		self.debug('default_timelimit : %s' % self.default_timelimit)
 
+		try:
+			self.random_nextmap = self.config.getint('settings', 'random_nextmap')
+		except (NoOptionError, ValueError):
+			self.random_nextmap = 0
+
+		self.debug('random_nextmap : %s' % self.random_nextmap)
+
+		try:
+			self.hopper_fileName = self.config.get('settings', 'hopper_fileName')
+		except (NoOptionError, ValueError):
+			self.hopper_fileName = ""
+
+		self.debug('hopper_fileName : %s' % self.hopper_fileName)
+
 		self.mapcycle = ""
 
 	####################################################################################################################
@@ -183,7 +213,12 @@ class MapconfigPlugin(b3.plugin.Plugin):
 		# self.debug('onNewMap handle %s:"%s"', event.type, event.data)
 		# event.data is a b3.game.Game object
 		mapName = event.data._get_mapName()
-		self.setMapSettings(mapName)
+		if mapName != self._up_mapname:
+			self._up_mapname = mapName
+			self.setMapSettings(mapName)
+
+			if (self.random_nextmap == 1):
+				self.cmd_randomnextmap()
 
 	def onEvent(self, event):
 		if (event.type == self.console.getEventID('EVT_GAME_EXIT')) or \
@@ -416,6 +451,12 @@ class MapconfigPlugin(b3.plugin.Plugin):
 			self.debug("nothing changed")
 			return
 
+		if (self.random_nextmap == 1):
+			self._up_nextmap = g_nextmap
+			self._up_next3 = '^7Upcoming: ^2%s^7, ^2**random**' % self._up_nextmap
+			self.console.say(self._up_next3)
+			return
+
 		file_timestamp = os.path.getmtime(self.mapcycle_fileName)
 		self.debug("upcoming: timestamp is %s" % file_timestamp)
 
@@ -493,3 +534,97 @@ class MapconfigPlugin(b3.plugin.Plugin):
 			startmessage, caps, overtime, gravity, ff))
 
 		self.debug("StartMessage set to %s" % self._startmessage)
+
+	def cmd_randomnextmap(self, data=None, client=None, cmd=None):
+		"""
+		Randomize the next map.
+		"""
+		mapName = self.console.getMap()
+		self.debug("Current map %s" % mapName)
+		if (self.hopper_fileName == ""):
+			# get a new random map from the database
+			cursor = self.console.storage.query("SELECT * FROM mapconfig WHERE skiprandom <> 1 order by rand() limit 2")
+			if cursor.EOF:
+				cursor.close()
+				self.debug('no mapconfig found for next map selection')
+			# raise KeyError('no mapconfig found matching %s' % mapconfig.mapname)
+
+			row = cursor.getOneRow()
+			nextMap = row['mapname']
+
+			# if it's the same map then try again
+			if nextMap == mapName:
+				self.debug("Dupe map %s, trying again" % nextMap)
+				row = cursor.moveNext()
+				nextMap = row['mapname']
+		else:
+			# get a new random map from reading hopper.txt
+			lines = []
+			with open(self.hopper_fileName, 'r') as file:
+				lines = file.readlines()
+				# remove crlf and whitespace
+				lines = [line.rstrip() for line in lines]
+				# removes the .pk3 from the end
+				lines = [line[:-4] for line in lines]
+			self.debug("Number of indexes in map hopper %s" % len(lines))
+			self.addBuiltInMaps(lines)
+			self.debug("Number of indexes after adding built-ins %s" % len(lines))
+			# pick a random map
+			randInt = random.randrange(0, len(lines))
+			nextMap = lines[randInt]
+			#self.debug("Comparing %s to %s" % (nextMap, mapName))
+			# if it's the same map then try again
+			if nextMap == mapName:
+				self.debug("Dupe map %s, trying again" % nextMap)
+				randInt = random.randrange(0, len(lines))
+				nextMap = lines[randInt]
+
+		self.debug("Setting random next map %s" % nextMap)
+		self.console.write("g_nextmap %s" % nextMap)
+		self.console.say("Next Map: %s" % nextMap)
+
+	def addBuiltInMaps(self, lines):
+		"""
+		Add Built-in maps so the random selection will include them.
+		Feel free to comment any maps you don't want chosen
+		"""
+		# add default built-in maps
+		lines.append('ut4_abbey')
+		#lines.append('ut4_algiers')
+		#lines.append('ut4_ambush')
+		lines.append('ut4_austria')
+		#lines.append('ut4_bohemia')
+		#lines.append('ut4_casa')
+		#lines.append('ut4_crossing')
+		#lines.append('ut4_docks')
+		#lines.append('ut4_eagle')
+		#lines.append('ut4_elgin')
+		## lines.append('ut4_firingRage')
+		#lines.append('ut4_ghostTown')
+		#lines.append('ut4_harborTown')
+		#lines.append('ut4_herring')
+		## lines.append('ut4_killroom')
+		#lines.append('ut4_kingdom')
+		#lines.append('ut4_kingpin')
+		#lines.append('ut4_mandolin')
+		#lines.append('ut4_maya')
+		#lines.append('ut4_mykonos')
+		#lines.append('ut4_oilDepot')
+		#lines.append('ut4_paris')
+		#lines.append('ut4_prague')
+		## lines.append('ut4_prominence')
+		#lines.append('ut4_raiders')
+		#lines.append('ut4_ramelle')
+		#lines.append('ut4_ricochet')
+		#lines.append('ut4_riyadh')
+		#lines.append('ut4_sanctuary')
+		## lines.append('ut4_snoppis')
+		#lines.append('ut4_suburbs')
+		#lines.append('ut4_subway')
+		#lines.append('ut4_swim')
+		#lines.append('ut4_thingley')
+		#lines.append('ut4_tombs')
+		#lines.append('ut4_toxic')
+		#lines.append('ut4_tunis')
+		#lines.append('ut4_turnpike')
+		#lines.append('ut4_uptown')
