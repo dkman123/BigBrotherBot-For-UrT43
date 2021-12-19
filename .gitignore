@@ -138,6 +138,10 @@ $RECYCLE.BIN/
 # Windows shortcuts
 *.lnk
 
-# Project files
+# PyCharm Project files
+.idea
 b3/.idea
 .idea/workspace.xml
+.idea/BigBrotherBot-For-UrT43.iml
+.idea/misc.xml
+

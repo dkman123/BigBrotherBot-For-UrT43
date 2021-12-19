@@ -583,6 +583,29 @@ class MapconfigPlugin(b3.plugin.Plugin):
 		self.console.write("g_nextmap %s" % nextMap)
 		self.console.say("Next Map: %s" % nextMap)
 
+	def cmd_setrandomnextmap(self, data=None, client=None, cmd=None):
+		"""
+		<on|off or 1|0> Set the random_nextmap config option.
+		"""
+		# self.debug("setrandomnextmap entered")
+
+		# if nothing was entered write the param info
+		if not data:
+			client.message('^7invalid data, try !help setrandomnextmap')
+			return
+
+		# read the data
+		if not data or data not in ('on', 'off', '1', '0'):
+			client.message('^7Invalid or missing data, try !help setrandomnextmap')
+			return
+
+		if data == 'on' or data == '1':
+			self.random_nextmap = 1
+			cmd.sayLoudOrPM(client, "random_nextmap turned ON")
+		else:
+			self.random_nextmap = 0
+			cmd.sayLoudOrPM(client, "random_nextmap turned OFF")
+
 	def addBuiltInMaps(self, lines):
 		"""
 		Add Built-in maps so the random selection will include them.
