@@ -640,14 +640,14 @@ class MapconfigPlugin(b3.plugin.Plugin):
 		lines.append('ut4_ramelle')
 		lines.append('ut4_ricochet')
 		lines.append('ut4_riyadh')
-		lines.append('ut4_sanctuary')
+		lines.append('ut4_sanc')  # map name is sanc, not sanctuary
 		## lines.append('ut4_snoppis')
 		lines.append('ut4_suburbs')
 		##lines.append('ut4_subway')
 		lines.append('ut4_swim')
 		lines.append('ut4_thingley')
 		lines.append('ut4_tombs')
-		#lines.append('ut4_toxic')
+		#lines.append('ut4_toxic') #removed from the base maps
 		lines.append('ut4_tunis')
 		lines.append('ut4_turnpike')
 		lines.append('ut4_uptown')
