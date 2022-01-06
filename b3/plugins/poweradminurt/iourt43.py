@@ -52,16 +52,11 @@ class Poweradminurt43Plugin(Poweradminurt41Plugin):
     }
 
     _weapon_groups = {
-        'all_nades': 'OQ',
-        'all_snipers': 'NZi',
-        'all_pistols': 'FGfgl',
-        'all_auto': 'IJLMacehk',
-        'all_stuff': 'RWUVTSX',
-        'all_shotguns': 'Hj',
         'nades': 'OQ',
         'snipers': 'NZi',
         'pistols': 'FGfgl',
-        'auto': 'IJLMacehk',
+        'autos': 'LMace',
+        'semis': 'IJhk',
         'stuff': 'RWUVTSX',
         'shotguns': 'Hj'
     }
