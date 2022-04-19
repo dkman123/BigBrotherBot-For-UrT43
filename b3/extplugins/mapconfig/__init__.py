@@ -87,6 +87,8 @@ class MapconfigPlugin(b3.plugin.Plugin):
 	_up_nextmap = ""
 	_up_next3 = ""
 	_startmessage = ""
+	_rnm_history_length = 5
+	rnm_history = []
 
 	####################################################################################################################
 	#                                                                                                                  #
@@ -200,6 +202,14 @@ class MapconfigPlugin(b3.plugin.Plugin):
 
 		self.mapcycle = ""
 
+		try:
+			self._rnm_history_length = self.config.getint('settings', 'rnm_history_length')
+		except (NoOptionError, ValueError):
+			self._rnm_history_length = 5
+
+		self.debug('rnm_history_length : %s' % self._rnm_history_length)
+
+
 	####################################################################################################################
 	#                                                                                                                  #
 	#   EVENTS                                                                                                         #
@@ -218,6 +228,14 @@ class MapconfigPlugin(b3.plugin.Plugin):
 			self.setMapSettings(mapName)
 
 			if (self.random_nextmap == 1):
+				# add to history
+				self.rnm_history.append(mapName)
+
+				# remove the first item if the list is long
+				if len(self.rnm_history) > 5:
+					self.rnm_history.remove(self.rnm_history[0])
+
+				# determine the next random map
 				self.cmd_randomnextmap()
 
 	def onEvent(self, event):
@@ -225,7 +243,8 @@ class MapconfigPlugin(b3.plugin.Plugin):
 				(event.type == self.console.getEventID('EVT_GAME_ROUND_END')):
 			# self.debug('onEvent')
 			if self.mapcycle_fileName:
-				self.cmd_upcoming(self)
+				if self.random_nextmap == 0:
+					self.cmd_upcoming(self)
 			else:
 				nextmap = self.console.getNextMap()
 				if nextmap:
@@ -446,12 +465,12 @@ class MapconfigPlugin(b3.plugin.Plugin):
 		g_nextmap = self.console.getNextMap()
 
 		# if nothing changed, just cough up the last string
-		if (mapname == self._up_mapname and g_nextmap == self._up_nextmap):
+		if mapname == self._up_mapname and g_nextmap == self._up_nextmap:
 			self.console.say(self._up_next3)
 			self.debug("nothing changed")
 			return
 
-		if (self.random_nextmap == 1):
+		if self.random_nextmap == 1:
 			self._up_nextmap = g_nextmap
 			self._up_next3 = '^7Upcoming: ^2%s^7, ^2**random**' % self._up_nextmap
 			self.console.say(self._up_next3)
@@ -569,6 +588,11 @@ class MapconfigPlugin(b3.plugin.Plugin):
 			self.debug("Number of indexes in map hopper %s" % len(lines))
 			self.addBuiltInMaps(lines)
 			self.debug("Number of indexes after adding built-ins %s" % len(lines))
+			# remove last X maps (from history)
+			if len(lines) > len(self.rnm_history) + 1:
+				self.debug("Removing last %s" % len(self.rnm_history))
+				for loopmap in range(0, len(self.rnm_history)):
+					lines.remove(self.rnm_history[loopmap])
 			# pick a random map
 			randInt = random.randrange(0, len(lines))
 			nextMap = lines[randInt]
@@ -618,13 +642,13 @@ class MapconfigPlugin(b3.plugin.Plugin):
 		lines.append('ut4_austria')
 		lines.append('ut4_bohemia')
 		lines.append('ut4_casa')
-		lines.append('ut4_crossing')
+		###lines.append('ut4_crossing')
 		lines.append('ut4_docks')
 		lines.append('ut4_eagle')
 		lines.append('ut4_elgin')
 		## lines.append('ut4_firingrange')
 		lines.append('ut4_ghosttown')
-		lines.append('ut4_harbortown')
+		###lines.append('ut4_harbortown')
 		lines.append('ut4_herring')
 		## lines.append('ut4_killroom')
 		lines.append('ut4_kingdom')

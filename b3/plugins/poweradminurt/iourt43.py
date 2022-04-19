@@ -55,13 +55,15 @@ class Poweradminurt43Plugin(Poweradminurt41Plugin):
         'all_nades': 'OQ',
         'all_snipers': 'NZi',
         'all_pistols': 'FGfgl',
-        'all_auto': 'IJLMacehk',
+        'all_autos': 'LMace',
+        'all_semis': 'IJhk',
         'all_stuff': 'RWUVTSX',
         'all_shotguns': 'Hj',
         'nades': 'OQ',
         'snipers': 'NZi',
         'pistols': 'FGfgl',
-        'auto': 'IJLMacehk',
+        'autos': 'LMace',
+        'semis': 'IJhk',
         'stuff': 'RWUVTSX',
         'shotguns': 'Hj'
     }
