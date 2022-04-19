@@ -374,7 +374,7 @@ class Poweradminurt43Plugin(Poweradminurt41Plugin):
     def cmd_pagear(self, data, client=None, cmd=None):
         """
         [<gear>] - set the allowed gear on the server
-        (You can safely use the command without the 'pa' at the beginning)
+        (nades, snipers, pistols, autos, semis, stuff, shotguns)
         """
         # self.debug("printgear: cmd = %s; client = %s; data = %s" % (cmd, client, data))
         if not data:
