@@ -644,7 +644,7 @@ class MapconfigPlugin(b3.plugin.Plugin):
 		lines.append('ut4_casa')
 		###lines.append('ut4_crossing')
 		lines.append('ut4_docks')
-		lines.append('ut4_eagle')
+		##lines.append('ut4_eagle')
 		lines.append('ut4_elgin')
 		## lines.append('ut4_firingrange')
 		lines.append('ut4_ghosttown')
