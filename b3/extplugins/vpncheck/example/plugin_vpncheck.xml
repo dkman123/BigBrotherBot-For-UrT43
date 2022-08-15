@@ -9,9 +9,9 @@
         <!--  key_abuseipdb : the key to Abuse IP DB -->
         <!--  https://docs.abuseipdb.com/#check-endpoint -->
         <set name="key_abuseipdb">YOURKEYABUSEIPDB</set>
-        <!--  email_address_getipintel : the email address to use for Get IP Intel -->
+        <!--  email_getipintel : the email address to use for Get IP Intel -->
         <!--  https://getipintel.net/free-proxy-vpn-tor-detection-api/ -->
-        <set name="email_address_getipintel">YOUREMAILADDRESS</set>
+        <set name="email_getipintel">YOUREMAILADDRESS</set>
         <!--  days_abuseipdb : the days to look for bad behavior. default 30 -->
         <set name="days_abuseipdb">30</set>
         <!--  score_needed_abuseipdb : the score needed to flag as bad. default 50 -->
@@ -19,7 +19,18 @@
         <!--  score_needed_getipintel : the score needed to flag as bad. default 0.94 -->
         <set name="score_needed_getipintel">0.94</set>
         <!--  check for vpns on player connect. 1 = enabled, 0 = disabled -->
-        <set name="on_connect">0</set>
+        <set name="on_connect">1</set>
+        <!--  key_proxycheck : the key to use for ProxyCheck.io -->
+        <!--  https://proxycheck.io/v2/13.13.13.51?vpn=1&asn=1 -->
+        <set name="key_proxycheck">YOURKEY</set>
+        <!--  use IP Hub. 1 = enabled, 0 = disabled -->
+        <set name="use_iphub">0</set>
+        <!--  use Abuse IP DB. 1 = enabled, 0 = disabled -->
+        <set name="use_abuseipdb">0</set>
+        <!--  use Get IP Intel. 1 = enabled, 0 = disabled -->
+        <set name="use_getipintel">0</set>
+        <!--  use ProxyCheck.io. 1 = enabled, 0 = disabled -->
+        <set name="use_proxycheck">1</set>
     </settings>
 
     <settings name="messages">
@@ -31,6 +42,12 @@
         <set name="abuseipdb_domain">^7AbuseIPDB domain: ^1%s</set>
         <set name="abuseipdb_isp">^7AbuseIPDB isp: ^1%s</set>
         <set name="getipintel_block">^7GetIPIntel block: ^1%s</set>
+        <set name="proxycheck_asn">^7ProxyCheck ASN: ^1%s</set>
+        <set name="proxycheck_org">^7ProxyCheck Org: ^1%s</set>
+        <set name="proxycheck_isocode">^7ProxyCheck ISO Code: ^1%s</set>
+        <set name="proxycheck_region">^7ProxyCheck Region: ^1%s</set>
+        <set name="proxycheck_type">^7ProxyCheck Type: ^1%s</set>
+        <set name="proxycheck_proxy">^7ProxyCheck Is Proxy: ^1%s</set>
     </settings>
 
     <settings name="commands">
@@ -49,6 +66,7 @@
         -->
         <!-- Command to check a client's connection -->
         <set name="vpncheck-vc">senioradmin</set>
+        <set name="vpncheckip-vcip">senioradmin</set>
     </settings>
 
     <!--

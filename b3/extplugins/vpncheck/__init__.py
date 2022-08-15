@@ -29,6 +29,8 @@ import b3
 import b3.cron
 import b3.events
 import b3.plugin
+import datetime
+import json
 import os
 import random
 import re
@@ -37,6 +39,7 @@ import string
 import thread
 import time
 
+from b3.clients import Client
 from b3.functions import getCmd
 from ConfigParser import NoOptionError
 
@@ -49,13 +52,21 @@ class VpncheckPlugin(b3.plugin.Plugin):
     # required params (if left empty it will not do that check)
     _key_iphub = None
     _key_abuseipdb = None
-    _email_address_getipintel = None
+    _email_getipintel = None
     # optional params
     _days_abuseipdb = 30
     _score_needed_abuseipdb = 50
     _score_needed_getipintel = 0.94
     _on_connect = 0
     _whitelists = None
+    _key_proxycheck = None
+    _use_iphub = 0
+    _use_abuseipdb = 0
+    _use_getipintel = 0
+    _use_proxycheck = 0
+    # _recent_players is a dictionary of client.id, datetime of last scan
+    _recent_players = {}
+    _store_for_minutes = 120
 
     ####################################################################################################################
     #                                                                                                                  #
@@ -120,8 +131,8 @@ class VpncheckPlugin(b3.plugin.Plugin):
             self.error('could not load settings/key_abuseipdb config value: %s' % e)
 
         try:
-            self._email_address_getipintel = self.config.get('settings', 'email_address_getipintel')
-            self.debug('loaded settings/email_address_getipintel: %s' % self._email_address_getipintel)
+            self._email_getipintel = self.config.get('settings', 'email_address_getipintel')
+            self.debug('loaded settings/email_address_getipintel: %s' % self._email_getipintel)
         except NoOptionError:
             self.error('could not find settings/email_address_getipintel in config file')
         except KeyError, e:
@@ -131,7 +142,7 @@ class VpncheckPlugin(b3.plugin.Plugin):
             self._days_abuseipdb = self.config.getint('settings', 'days_abuseipdb')
             self.debug('loaded settings/days_abuseipdb: %s' % self._days_abuseipdb)
         except NoOptionError:
-            self.warning('could not find settings/days_abuseipdb in config file, '
+            self.warninging('could not find settings/days_abuseipdb in config file, '
                          'using default: %s' % self._days_abuseipdb)
         except KeyError, e:
             self.error('could not load settings/days_abuseipdb config value: %s' % e)
@@ -141,7 +152,7 @@ class VpncheckPlugin(b3.plugin.Plugin):
             self._score_needed_abuseipdb = self.config.getint('settings', 'score_needed_abuseipdb')
             self.debug('loaded settings/score_needed_abuseipdb: %s' % self._score_needed_abuseipdb)
         except NoOptionError:
-            self.warning('could not find settings/score_needed_abuseipdb in config file, '
+            self.warninging('could not find settings/score_needed_abuseipdb in config file, '
                          'using default: %s' % self._score_needed_abuseipdb)
         except KeyError, e:
             self.error('could not load settings/score_needed_abuseipdb config value: %s' % e)
@@ -151,7 +162,7 @@ class VpncheckPlugin(b3.plugin.Plugin):
             self._score_needed_getipintel = self.config.getfloat('settings', 'score_needed_getipintel')
             self.debug('loaded settings/score_needed_getipintel: %s' % self._score_needed_getipintel)
         except NoOptionError:
-            self.warning('could not find settings/score_needed_getipintel in config file, '
+            self.warninging('could not find settings/score_needed_getipintel in config file, '
                          'using default: %s' % self._score_needed_getipintel)
         except KeyError, e:
             self.error('could not load settings/score_needed_getipintel config value: %s' % e)
@@ -161,7 +172,7 @@ class VpncheckPlugin(b3.plugin.Plugin):
             self._on_connect = self.config.getint('settings', 'on_connect')
             self.debug('loaded settings/on_connect: %s' % self._on_connect)
         except NoOptionError:
-            self.warning('could not find settings/on_connect in config file, '
+            self.warninging('could not find settings/on_connect in config file, '
                          'using default: %s' % self._on_connect)
         except KeyError, e:
             self.error('could not load settings/on_connect config value: %s' % e)
@@ -178,6 +189,54 @@ class VpncheckPlugin(b3.plugin.Plugin):
                 self.error(e)
         self.debug("VPNCheck %d whitelists loaded" % len(self._whitelists))
 
+        try:
+            self._key_proxycheck = self.config.get('settings', 'key_proxycheck')
+            self.debug('loaded settings/key_proxycheck: %s' % self._key_proxycheck)
+        except NoOptionError:
+            self.error('could not find settings/key_proxycheck in config file')
+        except KeyError, e:
+            self.error('could not load settings/key_proxycheck config value: %s' % e)
+
+        try:
+            self._use_iphub = self.config.getint('settings', 'use_iphub')
+            self.debug('loaded settings/use_iphub: %s' % self._use_iphub)
+        except NoOptionError:
+            self.warninging('could not find settings/use_iphub in config file, '
+                         'using default: %s' % self._use_iphub)
+        except KeyError, e:
+            self.error('could not load settings/use_iphub config value: %s' % e)
+            self.debug('using default value (%s) for settings/use_iphub' % self._use_iphub)
+
+        try:
+            self._use_abuseipdb = self.config.getint('settings', 'use_abuseipdb')
+            self.debug('loaded settings/use_abuseipdb: %s' % self._use_abuseipdb)
+        except NoOptionError:
+            self.warninging('could not find settings/use_abuseipdb in config file, '
+                         'using default: %s' % self._use_abuseipdb)
+        except KeyError, e:
+            self.error('could not load settings/use_abuseipdb config value: %s' % e)
+            self.debug('using default value (%s) for settings/use_abuseipdb' % self._use_abuseipdb)
+
+        try:
+            self._use_getipintel = self.config.getint('settings', 'use_getipintel')
+            self.debug('loaded settings/use_getipintel: %s' % self._use_getipintel)
+        except NoOptionError:
+            self.warninging('could not find settings/use_getipintel in config file, '
+                         'using default: %s' % self._use_getipintel)
+        except KeyError, e:
+            self.error('could not load settings/use_getipintel config value: %s' % e)
+            self.debug('using default value (%s) for settings/use_getipintel' % self._use_getipintel)
+
+        try:
+            self._use_proxycheck = self.config.getint('settings', 'use_proxycheck')
+            self.debug('loaded settings/use_proxycheck: %s' % self._use_proxycheck)
+        except NoOptionError:
+            self.warninging('could not find settings/use_proxycheck in config file, '
+                         'using default: %s' % self._use_proxycheck)
+        except KeyError, e:
+            self.error('could not load settings/use_proxycheck config value: %s' % e)
+            self.debug('using default value (%s) for settings/use_proxycheck' % self._use_proxycheck)
+
     ####################################################################################################################
     #                                                                                                                  #
     #   EVENTS                                                                                                         #
@@ -190,9 +249,10 @@ class VpncheckPlugin(b3.plugin.Plugin):
         """
         # self.debug("VPNCheck: onPlayerConnect")
         if self._on_connect == 1:
-            if self._whitelists:
-                # self.debug("DK: running check")
-                thread.start_new_thread(self.checkClient, (event.client,))
+            #if self._whitelists:
+            # self.debug("VPNCheck: running whitelist check")
+            # NOTE: 2nd argument must be a tuple, leave the "extra/stray" comma
+            thread.start_new_thread(self.checkClient, (event.client, ))
 
     ####################################################################################################################
     #                                                                                                                  #
@@ -200,36 +260,88 @@ class VpncheckPlugin(b3.plugin.Plugin):
     #                                                                                                                  #
     ####################################################################################################################
 
-    def checkClient(self, client):
+    def checkClient(self, sclient):
         # self.debug("DK: checkClient")
+
+        # start chunk
+        # note: might want to move this up to onAuth so it doesn't spin up a thread
+        last_player_scanned = None
+        # if the player wasn't in the list, then add them
+        try:
+            # look for the last_player_scanned
+            last_player_scanned = self._recent_players[sclient.id]
+            self.debug('@%s %s was found previously scanned' % (sclient.id, sclient.name))
+        except KeyError:
+            self.debug('@%s %s was not recently scanned' % (sclient.id, sclient.name))
+            self._recent_players[sclient.id] = datetime.datetime.now()
+
+        if last_player_scanned is not None:
+            # check the age
+            current_time = datetime.datetime.now()
+            minutes = (current_time - last_player_scanned).seconds / 60
+            if minutes < self._store_for_minutes:
+                self.debug('@%s %s was recently checked, skipping vpncheck scan' % (sclient.id, sclient.name))
+                return
+        # end chunk
+
         # check the level of the connecting client before applying the filters
-        if client.maxLevel >= self._immunity_level:
+        if sclient.maxLevel >= self._immunity_level:
             self.info('VPNCheck: %s is a high enough level user and allowed to connect. client: %s; immunity: %s' %
-                      (client.name, client.maxLevel, self._immunity_level))
+                      (sclient.name, sclient.maxLevel, self._immunity_level))
         else:
-            self.debug("VPNCheck: checkClient %s" % client.name)
+            self.debug("VPNCheck: checkClient %s" % sclient.name)
             # check whitelist
             for whitelist in self._whitelists:
-                result = whitelist.isBanned(client)
+                # isBanned is really "Is Hit/Contained in"
+                result = whitelist.isBanned(sclient)
                 if result is not False:
-                    self.debug('VPNCheck %s %s, ip:%s, guid:%s. Found in whitelist : %s' % (client.id, client.name
-                                                                                            , client.ip, client.guid
+                    self.debug('VPNCheck %s %s, ip:%s, guid:%s. Found in whitelist : %s' % (sclient.id, sclient.name
+                                                                                            , sclient.ip, sclient.guid
                                                                                             , whitelist.name))
-                    msg = whitelist.getMessage(client)
+                    msg = whitelist.getMessage(sclient)
                     if msg and msg != "":
                         self.console.write(msg)
                     return
 
-            self.debug("DK: checking for vpn")
+            self.debug("VPNCheck: checking for vpn")
             # if not whitelisted then check for vpn
-            _is_vpn_getipintel = False
-            if self._email_address_getipintel and self._email_address_getipintel != "blank":
-                _is_vpn_getipintel = self.CheckGetIPIntel(client.ip, self._email_address_getipintel,
-                                                          self._score_needed_getipintel)
-                self.debug("VPNCheck on_connect for %s [%s]: %s", (client.name, client.ip, _is_vpn_getipintel))
-                if _is_vpn_getipintel:
-                    self.debug("VPNCheck: kicking %s" % client.name)
-                    client.kick('VPN/Proxy detected [%s]' % client.name, keyword="vpncheck", silent=True)
+
+            #if (self._use_getipintel == 1):
+            #    _is_vpn_iphub, isp, countryCode = self.CheckIPHub(client.ip, self._key_iphub)
+
+            # if (self._use_abuseipdb == 1):
+            #    _is_vpn_abuseipdb, domain, isp, countryCode = self.CheckAbuseIPDB(client.ip, self._key_abuseipdb
+            #        , self._days_abuseipdb, self._score_needed_abuseipdb)
+
+            if self._use_getipintel == 1:
+                _is_vpn_getipintel = False
+                if self._email_getipintel and self._email_getipintel != "blank":
+                    _is_vpn_getipintel = self.CheckGetIPIntel(sclient.ip, self._email_getipintel,
+                                                              self._score_needed_getipintel)
+                    self.debug("VPNCheck on_connect for %s [%s]: %s", (sclient.name, sclient.ip, _is_vpn_getipintel))
+                    if _is_vpn_getipintel:
+                        self.debug("VPNCheck: kicking %s" % sclient.name)
+                        sclient.kick('VPN/Proxy detected [%s]' % sclient.name, keyword="vpncheck", silent=True)
+                        # remove them from recent
+                        self._recent_players.pop(sclient.id, None)
+
+            if self._use_proxycheck == 1:
+                if self._key_proxycheck and self._key_proxycheck != "blank":
+                    proxycheck_response = self.CheckProxyCheck(sclient.ip, self._key_proxycheck)
+
+                    if (proxycheck_response['status'] != "ok"):
+                        self.debug("VPNCheck ProxyCheck failed with status %s" % proxycheck_response['status'])
+                    self.debug("VPNCheck on_connect for %s [%s]: %s" % (sclient.name, sclient.ip, proxycheck_response['is_vpn']))
+                    if proxycheck_response['is_vpn']:
+                        sclient.kick('VPN/Proxy detected [%s]' % sclient.name, keyword="vpncheck", silent=True)
+                        # remove them from recent
+                        self._recent_players.pop(sclient.id, None)
+                        #self.debug("VPNCheck: kicking %s" % client.name)
+                        self.debug("VPNCheck kicking %s [%s]: %s; asn %s; org %s; country %s; region %s; type %s"
+                                   % (sclient.name, sclient.ip, str(proxycheck_response['is_vpn'])
+                                      , proxycheck_response['asn'], proxycheck_response['org']
+                                      , proxycheck_response['isocode'], proxycheck_response['region']
+                                      , proxycheck_response['connection_type']))
 
     def CheckIPHub(self, _userip, _key_iphub):
         _is_vpn_iphub = False
@@ -270,7 +382,7 @@ class VpncheckPlugin(b3.plugin.Plugin):
         try:
             data = request.json()
         except ValueError:
-            self.warn("got non-json response from %s", url)
+            self.warning("got non-json response from %s", url)
             return _is_vpn_iphub, isp
 
         # print(data)
@@ -284,17 +396,17 @@ class VpncheckPlugin(b3.plugin.Plugin):
             if data["block"] == "1":
                 _is_vpn_iphub = True
         except KeyError:
-            self.warn("key not found: block")
+            self.warning("key not found: block")
 
         try:
             isp = data["isp"]
         except KeyError:
-            self.warn("key not found: isp")
+            self.warning("key not found: isp")
 
         try:
             countryCode = data["countryCode"]
         except KeyError:
-            self.warn("key not found: countryCode")
+            self.warning("key not found: countryCode")
 
         return _is_vpn_iphub, isp, countryCode
 
@@ -362,7 +474,7 @@ class VpncheckPlugin(b3.plugin.Plugin):
         try:
             data = request.json()
         except ValueError:
-            self.warn("got non-json response from %s", url)
+            self.warning("got non-json response from %s", url)
             return _is_vpn_abuseipdb, isp
 
         # print(data)
@@ -377,26 +489,26 @@ class VpncheckPlugin(b3.plugin.Plugin):
             if int(data["data"]["abuseConfidenceScore"]) > _score_needed_abuseipdb:
                 _is_vpn_abuseipdb = True
         except KeyError:
-            self.warn("key not found: data/abuseConfidenceScore")
+            self.warning("key not found: data/abuseConfidenceScore")
 
         try:
             domain = data["data"]["domain"]
         except KeyError:
-            self.warn("key not found: data/domain")
+            self.warning("key not found: data/domain")
 
         try:
             isp = data["data"]["isp"]
         except KeyError:
-            self.warn("key not found: data/isp")
+            self.warning("key not found: data/isp")
 
         try:
             countryCode = data["data"]["countryCode"]
         except KeyError:
-            self.warn("key not found: data/countryCode")
+            self.warning("key not found: data/countryCode")
 
         return _is_vpn_abuseipdb, domain, isp, countryCode
 
-    def CheckGetIPIntel(self, _userip, _email_address_getipintel, _score_needed_getipintel=0.94):
+    def CheckGetIPIntel(self, _userip, _email_getipintel, _score_needed_getipintel=0.94):
         _is_vpn_getipintel = False
 
         # API documentation URL: https://getipintel.net/free-proxy-vpn-tor-detection-api/
@@ -404,7 +516,7 @@ class VpncheckPlugin(b3.plugin.Plugin):
         ## http://check.getipintel.net/check.php?ip=IPHere&contact=YourEmailAddressHere
 
         # make the request
-        url = "http://check.getipintel.net/check.php?ip=" + _userip + "&contact=" + _email_address_getipintel
+        url = "http://check.getipintel.net/check.php?ip=" + _userip + "&contact=" + _email_getipintel
         try:
             request = requests.get(url)
         except requests.exceptions.SSLError:
@@ -446,6 +558,114 @@ class VpncheckPlugin(b3.plugin.Plugin):
 
         return _is_vpn_getipintel
 
+    def CheckProxyCheck(self, _userip, _key_proxycheck):
+        is_vpn = False
+        status = ""
+        asn = ""
+        org = ""
+        # country code
+        isocode = ""
+        region = ""
+        connection_type = ""
+
+        # https://proxycheck.io/v2/136.57.206.51?vpn=1&asn=1
+
+        # make the request
+        url = "https://proxycheck.io/v2/" + _userip + "?vpn=1&asn=1"
+        self.debug('Requesting URL (%s)' % url)
+        if _key_proxycheck and _key_proxycheck != "YOURKEY" and _key_proxycheck != "blank":
+            url += "&key=" + _key_proxycheck
+        headers = { }
+        #headers = {"X-Key": _key_proxycheck}
+        #skip = 0
+        #if (skip == 0):
+        try:
+            request = requests.get(url, headers=headers)
+        except requests.exceptions.SSLError:
+            self.error("SSLError connecting to %s", url)
+            return {'is_vpn': is_vpn, 'asn': asn, 'org': org, 'isocode': isocode
+                , 'region': region, 'connection_type': connection_type}
+
+        # sample response (json):
+
+        # status        "ok"
+        # 13.13.13.51
+        #     asn        "AS16591"
+        #     provider        "Google Fiber Inc."
+        #     organisation        "Google Fiber Inc"
+        #     continent        "North America"
+        #     country        "United States"
+        #     isocode        "US"
+        #     region        "North Carolina"
+        #     regioncode        "NC"
+        #     city        "SomeTown"
+        #     latitude        36.2916
+        #     longitude - 81.8201
+        #     proxy        "no"
+        #     type        "Residential"
+
+        # parse the data
+        try:
+            data = request.json()
+            self.warning("DEBUG %s", str(data))
+        except ValueError:
+            self.warning("got non-json response from %s", url)
+            return {'is_vpn': is_vpn, 'asn': asn, 'org': org, 'isocode': isocode
+                , 'region': region, 'connection_type': connection_type}
+
+        #if (skip == 1):
+        #    str = '{"status": "ok", "93.239.34.47": {"city": "Hamm", "country": "Germany", "organisation": "Deutsche Telekom AG", "longitude": 7.7351, "asn": "AS3320", "regioncode": "NW", "proxy": "no", "provider": "Deutsche Telekom AG", "latitude": 51.6452, "region": "North Rhine-Westphalia", "isocode": "DE", "type": "Residential", "continent": "Europe"}}'
+        #    data = json.loads(str)
+
+        # print(data)
+
+        # sort_keys: True for "pretty display"
+        # print(json.dumps(data, sort_keys=True, indent=4, separators=(',', ': ')))
+
+        # print(data["block"])
+
+        try:
+            status = data["status"]
+        except KeyError:
+            self.warning("key not found: 2 status")
+
+        if status != "error":
+
+            try:
+                if (data[_userip]["proxy"]).lower() == "yes":
+                    is_vpn = True
+                    self.debug("Found True for %s" % _userip)
+            except KeyError:
+                self.warning("key not found: proxy")
+
+            try:
+                asn = data[_userip]["asn"]
+            except KeyError:
+                self.warning("key not found: asn")
+
+            try:
+                org = data[_userip]["organisation"]
+            except KeyError:
+                self.warning("key not found: organisation")
+
+            try:
+                isocode = data[_userip]["isocode"]
+            except KeyError:
+                self.warning("key not found: isocode")
+
+            try:
+                region = data[_userip]["region"]
+            except KeyError:
+                self.warning("key not found: region")
+
+            try:
+                connection_type = data[_userip]["type"]
+            except KeyError:
+                self.warning("key not found: type")
+
+        return {'is_vpn': is_vpn, 'asn': asn, 'org': org, 'isocode': isocode
+            , 'region': region, 'connection_type': connection_type, 'status': status}
+
     ####################################################################################################################
     #                                                                                                                  #
     #    COMMANDS                                                                                                      #
@@ -465,53 +685,140 @@ class VpncheckPlugin(b3.plugin.Plugin):
             cmd.sayLoudOrPM("client not found")
             return
 
-        # -- IPHub
-
         cmd.sayLoudOrPM(client, 'vpncheck %s (%s)' % (sclient.cid, sclient.ip))
 
-        _is_vpn_iphub = False
-        _isp_iphub = ""
-        _countryCode_iphub = ""
-        if self._key_iphub and self._key_iphub != "blank":
-            _is_vpn_iphub, _isp_iphub, _countryCode_iphub = self.CheckIPHub(sclient.ip, self._key_iphub)
+        # -- IPHub
+        if self._use_iphub == 1:
+            _is_vpn_iphub = False
+            _isp_iphub = ""
+            _countryCode_iphub = ""
+            if self._key_iphub and self._key_iphub != "blank":
+                _is_vpn_iphub, _isp_iphub, _countryCode_iphub = self.CheckIPHub(sclient.ip, self._key_iphub)
 
-        cmd.sayLoudOrPM(client, self.getMessage('iphub_block', str(_is_vpn_iphub)))
-        cmd.sayLoudOrPM(client, self.getMessage('iphub_isp', _isp_iphub))
-        cmd.sayLoudOrPM(client, self.getMessage('iphub_countryCode', _countryCode_iphub))
+            cmd.sayLoudOrPM(client, self.getMessage('iphub_block', str(_is_vpn_iphub)))
+            cmd.sayLoudOrPM(client, self.getMessage('iphub_isp', _isp_iphub))
+            cmd.sayLoudOrPM(client, self.getMessage('iphub_countryCode', _countryCode_iphub))
 
         # -- Abuse IPDB
+        if self._use_abuseipdb == 1:
+            # _days_abuseipdb = 30
+            # _score_needed_abuseipdb = 50
+            _is_vpn_abuseipdb = False
+            _domain_abuseipdb = ""
+            _countryCode_abuseipdb = ""
+            _isp_abuseipdb = ""
+            if self._key_abuseipdb and self._key_abuseipdb != "blank":
+                _is_vpn_abuseipdb, _domain_abuseipdb, _isp_abuseipdb, _countryCode_abuseipdb = self.CheckAbuseIPDB(sclient.ip, self._key_abuseipdb, self._days_abuseipdb, self._score_needed_abuseipdb)
+            # self.console.write("AbuseIPDB block: %s", str(_is_vpn_abuseipdb))
+            # self.console.write("AbuseIPDB isp: %s", _isp_abuseipdb)
 
-        # _days_abuseipdb = 30
-        # _score_needed_abuseipdb = 50
-        _is_vpn_abuseipdb = False
-        _domain_abuseipdb = ""
-        _countryCode_abuseipdb = ""
-        _isp_abuseipdb = ""
-        if self._key_abuseipdb and self._key_abuseipdb != "blank":
-            _is_vpn_abuseipdb, _domain_abuseipdb, _isp_abuseipdb, _countryCode_abuseipdb = self.CheckAbuseIPDB(sclient.ip, self._key_abuseipdb, self._days_abuseipdb, self._score_needed_abuseipdb)
-        # self.console.write("AbuseIPDB block: %s", str(_is_vpn_abuseipdb))
-        # self.console.write("AbuseIPDB isp: %s", _isp_abuseipdb)
+            # self.console.write(self.getMessage('abuseipdb_block' % str(_is_vpn_abuseipdb)))
+            # self.console.write(self.getMessage('abuseipdb_isp' % _isp_abuseipdb))
 
-        # self.console.write(self.getMessage('abuseipdb_block' % str(_is_vpn_abuseipdb)))
-        # self.console.write(self.getMessage('abuseipdb_isp' % _isp_abuseipdb))
-
-        cmd.sayLoudOrPM(client, self.getMessage('abuseipdb_block', str(_is_vpn_abuseipdb)))
-        cmd.sayLoudOrPM(client, self.getMessage('abuseipdb_domain', _domain_abuseipdb))
-        cmd.sayLoudOrPM(client, self.getMessage('abuseipdb_isp', _isp_abuseipdb))
-        cmd.sayLoudOrPM(client, self.getMessage('abuseipdb_countryCode', _countryCode_abuseipdb))
+            cmd.sayLoudOrPM(client, self.getMessage('abuseipdb_block', str(_is_vpn_abuseipdb)))
+            cmd.sayLoudOrPM(client, self.getMessage('abuseipdb_domain', _domain_abuseipdb))
+            cmd.sayLoudOrPM(client, self.getMessage('abuseipdb_isp', _isp_abuseipdb))
+            cmd.sayLoudOrPM(client, self.getMessage('abuseipdb_countryCode', _countryCode_abuseipdb))
 
         # -- GetIPIntel
+        if self._use_getipintel == 1:
+            _is_vpn_getipintel = False
+            # _score_needed_getipintel = 0.94
+            if self._email_getipintel and self._email_getipintel != "blank":
+                _is_vpn_getipintel = self.CheckGetIPIntel(sclient.ip, self._email_getipintel, self._score_needed_getipintel)
+            # self.console.write("GetIPIntel block: %s", str(_is_vpn_getipintel))
 
-        _is_vpn_getipintel = False
-        # _score_needed_getipintel = 0.94
-        if self._email_address_getipintel and self._email_address_getipintel != "blank":
-            _is_vpn_getipintel = self.CheckGetIPIntel(sclient.ip, self._email_address_getipintel, self._score_needed_getipintel)
-        # self.console.write("GetIPIntel block: %s", str(_is_vpn_getipintel))
+            # self.console.write(self.getMessage('getipintel_block' % str(_is_vpn_getipintel)))
 
-        # self.console.write(self.getMessage('getipintel_block' % str(_is_vpn_getipintel)))
+            cmd.sayLoudOrPM(client, self.getMessage('getipintel_block', str(_is_vpn_getipintel)))
 
-        cmd.sayLoudOrPM(client, self.getMessage('getipintel_block', str(_is_vpn_getipintel)))
+        # -- ProxyCheck
+        if self._use_proxycheck == 1:
+            if self._key_proxycheck and self._key_proxycheck != "blank":
+                proxycheck_response = self.CheckProxyCheck(sclient.ip, self._key_proxycheck)
 
+                self.debug("VPNCheck for %s [%s]: %s" % (sclient.name, sclient.ip, proxycheck_response['is_vpn']))
+                if proxycheck_response['status'] != "ok":
+                    self.debug("VPNCheck ProxyCheck failed with status %s" % proxycheck_response['status'])
+                    cmd.sayLoudOrPM(client, "VPNCheck ProxyCheck failed with status %s" % proxycheck_response['status'])
+                else:
+                    cmd.sayLoudOrPM(client, self.getMessage('proxycheck_asn', str(proxycheck_response['asn'])))
+                    cmd.sayLoudOrPM(client, self.getMessage('proxycheck_org', str(proxycheck_response['org'])))
+                    cmd.sayLoudOrPM(client, self.getMessage('proxycheck_isocode', str(proxycheck_response['isocode'])))
+                    cmd.sayLoudOrPM(client, self.getMessage('proxycheck_region', str(proxycheck_response['region'])))
+                    cmd.sayLoudOrPM(client, self.getMessage('proxycheck_type', str(proxycheck_response['connection_type'])))
+                    cmd.sayLoudOrPM(client, self.getMessage('proxycheck_proxy', str(proxycheck_response['is_vpn'])))
+
+    def cmd_vpncheckip(self, data=None, client=None, cmd=None):
+        if not data:
+            client.message('^7invalid data, try !help vpncheckip')
+            return
+
+        sclient = Client()
+        sclient.name = "direct ip"
+        sclient.ip = data
+
+        # -- IPHub
+        if self._use_iphub == 1:
+            _is_vpn_iphub = False
+            _isp_iphub = ""
+            _countryCode_iphub = ""
+            if self._key_iphub and self._key_iphub != "blank":
+                _is_vpn_iphub, _isp_iphub, _countryCode_iphub = self.CheckIPHub(sclient.ip, self._key_iphub)
+
+            cmd.sayLoudOrPM(client, self.getMessage('iphub_block', str(_is_vpn_iphub)))
+            cmd.sayLoudOrPM(client, self.getMessage('iphub_isp', _isp_iphub))
+            cmd.sayLoudOrPM(client, self.getMessage('iphub_countryCode', _countryCode_iphub))
+
+        # -- Abuse IPDB
+        if self._use_abuseipdb == 1:
+            # _days_abuseipdb = 30
+            # _score_needed_abuseipdb = 50
+            _is_vpn_abuseipdb = False
+            _domain_abuseipdb = ""
+            _countryCode_abuseipdb = ""
+            _isp_abuseipdb = ""
+            if self._key_abuseipdb and self._key_abuseipdb != "blank":
+                _is_vpn_abuseipdb, _domain_abuseipdb, _isp_abuseipdb, _countryCode_abuseipdb = self.CheckAbuseIPDB(sclient.ip, self._key_abuseipdb, self._days_abuseipdb, self._score_needed_abuseipdb)
+            # self.console.write("AbuseIPDB block: %s", str(_is_vpn_abuseipdb))
+            # self.console.write("AbuseIPDB isp: %s", _isp_abuseipdb)
+
+            # self.console.write(self.getMessage('abuseipdb_block' % str(_is_vpn_abuseipdb)))
+            # self.console.write(self.getMessage('abuseipdb_isp' % _isp_abuseipdb))
+
+            cmd.sayLoudOrPM(client, self.getMessage('abuseipdb_block', str(_is_vpn_abuseipdb)))
+            cmd.sayLoudOrPM(client, self.getMessage('abuseipdb_domain', _domain_abuseipdb))
+            cmd.sayLoudOrPM(client, self.getMessage('abuseipdb_isp', _isp_abuseipdb))
+            cmd.sayLoudOrPM(client, self.getMessage('abuseipdb_countryCode', _countryCode_abuseipdb))
+
+        # -- GetIPIntel
+        if self._use_getipintel == 1:
+            _is_vpn_getipintel = False
+            # _score_needed_getipintel = 0.94
+            if self._email_getipintel and self._email_getipintel != "blank":
+                _is_vpn_getipintel = self.CheckGetIPIntel(sclient.ip, self._email_getipintel, self._score_needed_getipintel)
+            # self.console.write("GetIPIntel block: %s", str(_is_vpn_getipintel))
+
+            # self.console.write(self.getMessage('getipintel_block' % str(_is_vpn_getipintel)))
+
+            cmd.sayLoudOrPM(client, self.getMessage('getipintel_block', str(_is_vpn_getipintel)))
+
+        # -- ProxyCheck
+        if self._use_proxycheck == 1:
+            if self._key_proxycheck and self._key_proxycheck != "blank":
+                proxycheck_response = self.CheckProxyCheck(sclient.ip, self._key_proxycheck)
+
+                self.debug("VPNCheck for %s [%s]: %s" % (sclient.name, sclient.ip, proxycheck_response['is_vpn']))
+                if proxycheck_response['status'] != "ok":
+                    self.debug("VPNCheck ProxyCheck failed with status %s" % proxycheck_response['status'])
+                    cmd.sayLoudOrPM(client, "VPNCheck ProxyCheck failed with status %s" % proxycheck_response['status'])
+                else:
+                    cmd.sayLoudOrPM(client, self.getMessage('proxycheck_asn', str(proxycheck_response['asn'])))
+                    cmd.sayLoudOrPM(client, self.getMessage('proxycheck_org', str(proxycheck_response['org'])))
+                    cmd.sayLoudOrPM(client, self.getMessage('proxycheck_isocode', str(proxycheck_response['isocode'])))
+                    cmd.sayLoudOrPM(client, self.getMessage('proxycheck_region', str(proxycheck_response['region'])))
+                    cmd.sayLoudOrPM(client, self.getMessage('proxycheck_type', str(proxycheck_response['connection_type'])))
+                    cmd.sayLoudOrPM(client, self.getMessage('proxycheck_proxy', str(proxycheck_response['is_vpn'])))
 
 ####################################################################################################################
 #                                                                                                                  #
@@ -642,7 +949,6 @@ class Banlist(object):
                 self.file_content = f.read()
             self.clear_cache()
 
-
 class IpBanlist(Banlist):
 
     _forceRange = None
@@ -714,7 +1020,6 @@ class IpBanlist(Banlist):
                 return ip, "ip '%s' matches (by forced range) banlist entry %r (%s %s)" % (ip, m.group('entry').strip(), self.name, self.getHumanModifiedTime())
 
         return False, "ip '%s' not found in banlist (%s %s)" % (ip, self.name, self.getHumanModifiedTime())
-
 
 class BanlistException(Exception):
     def __init__(self, value):
