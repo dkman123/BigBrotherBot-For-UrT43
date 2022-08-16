@@ -31,6 +31,10 @@
         <set name="use_getipintel">0</set>
         <!--  use ProxyCheck.io. 1 = enabled, 0 = disabled -->
         <set name="use_proxycheck">1</set>
+        <!--  store_for_minutes (int). hold good connections for this long, so a rescan is not necessary. default = 120 -->
+        <set name="store_for_minutes">120</set>
+        <!--  bad_for_minutes (int). hold bad connections for this long, so a rescan is not necessary. default = 120 -->
+        <set name="bad_for_minutes">120</set>
     </settings>
 
     <settings name="messages">

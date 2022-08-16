@@ -66,7 +66,9 @@ class VpncheckPlugin(b3.plugin.Plugin):
     _use_proxycheck = 0
     # _recent_players is a dictionary of client.id, datetime of last scan
     _recent_players = {}
+    _bad_players = {}
     _store_for_minutes = 120
+    _bad_for_minutes = 120
 
     ####################################################################################################################
     #                                                                                                                  #
@@ -237,6 +239,26 @@ class VpncheckPlugin(b3.plugin.Plugin):
             self.error('could not load settings/use_proxycheck config value: %s' % e)
             self.debug('using default value (%s) for settings/use_proxycheck' % self._use_proxycheck)
 
+        try:
+            self._bad_for_minutes = self.config.getint('settings', 'bad_for_minutes')
+            self.debug('loaded settings/bad_for_minutes: %s' % self._bad_for_minutes)
+        except NoOptionError:
+            self.warninging('could not find settings/bad_for_minutes in config file, '
+                         'using default: %s' % self._bad_for_minutes)
+        except KeyError, e:
+            self.error('could not load settings/bad_for_minutes config value: %s' % e)
+            self.debug('using default value (%s) for settings/bad_for_minutes' % self._bad_for_minutes)
+
+        try:
+            self._store_for_minutes = self.config.getint('settings', 'store_for_minutes')
+            self.debug('loaded settings/_store_for_minutes: %s' % self._store_for_minutes)
+        except NoOptionError:
+            self.warninging('could not find settings/_store_for_minutes in config file, '
+                         'using default: %s' % self._store_for_minutes)
+        except KeyError, e:
+            self.error('could not load settings/_store_for_minutes config value: %s' % e)
+            self.debug('using default value (%s) for settings/_store_for_minutes' % self._store_for_minutes)
+
     ####################################################################################################################
     #                                                                                                                  #
     #   EVENTS                                                                                                         #
@@ -261,19 +283,19 @@ class VpncheckPlugin(b3.plugin.Plugin):
     ####################################################################################################################
 
     def checkClient(self, sclient):
-        # self.debug("DK: checkClient")
+        # self.debug("VPNCheck: checkClient")
 
-        # start chunk
+        # start chunk (use CID for good clients)
         # note: might want to move this up to onAuth so it doesn't spin up a thread
-        last_player_scanned = None
-        # if the player wasn't in the list, then add them
         try:
             # look for the last_player_scanned
             last_player_scanned = self._recent_players[sclient.id]
-            self.debug('@%s %s was found previously scanned' % (sclient.id, sclient.name))
+            #self.debug('@%s %s was found previously scanned' % (sclient.id, sclient.name))
         except KeyError:
-            self.debug('@%s %s was not recently scanned' % (sclient.id, sclient.name))
+            #self.debug('@%s %s was not recently scanned' % (sclient.id, sclient.name))
+            # if the player wasn't in the list, then add them
             self._recent_players[sclient.id] = datetime.datetime.now()
+            last_player_scanned = None
 
         if last_player_scanned is not None:
             # check the age
@@ -284,12 +306,37 @@ class VpncheckPlugin(b3.plugin.Plugin):
                 return
         # end chunk
 
+        # start chunk (use IP Address for bad clients, so if they disconnect from VPN they can connect)
+        #last_bad_scanned = None
+        try:
+            # look for the last_bad_scanned
+            last_bad_scanned = self._bad_players[sclient.ip]
+            # if it wasn't in the list we would have hit an exception
+            #self.debug('@%s %s was found previously bad ip %s' % (sclient.id, sclient.name, sclient.ip))
+        except KeyError:
+            #self.debug('@%s %s was not recently bad' % (sclient.id, sclient.name))
+            last_bad_scanned = None
+
+        if last_bad_scanned is not None:
+            # check the age
+            current_time = datetime.datetime.now()
+            minutes = (current_time - last_bad_scanned).seconds / 60
+            if minutes < self._bad_for_minutes:
+                self.debug('@%s %s was recently bad, skipping vpncheck scan' % (sclient.id, sclient.name))
+                #self.debug("VPNCheck: kicking %s" % sclient.name)
+                sclient.kick('VPN/Proxy recently detected [%s]' % sclient.name, keyword="vpncheck", silent=True)
+                return
+            else:
+                # if the time has expired, remove it
+                self._bad_players.pop(sclient.ip, None)
+        # end chunk
+
         # check the level of the connecting client before applying the filters
         if sclient.maxLevel >= self._immunity_level:
             self.info('VPNCheck: %s is a high enough level user and allowed to connect. client: %s; immunity: %s' %
                       (sclient.name, sclient.maxLevel, self._immunity_level))
         else:
-            self.debug("VPNCheck: checkClient %s" % sclient.name)
+            #self.debug("VPNCheck: checkClient %s" % sclient.name)
             # check whitelist
             for whitelist in self._whitelists:
                 # isBanned is really "Is Hit/Contained in"
@@ -303,7 +350,7 @@ class VpncheckPlugin(b3.plugin.Plugin):
                         self.console.write(msg)
                     return
 
-            self.debug("VPNCheck: checking for vpn")
+            #self.debug("VPNCheck: checking for vpn")
             # if not whitelisted then check for vpn
 
             #if (self._use_getipintel == 1):
@@ -318,12 +365,15 @@ class VpncheckPlugin(b3.plugin.Plugin):
                 if self._email_getipintel and self._email_getipintel != "blank":
                     _is_vpn_getipintel = self.CheckGetIPIntel(sclient.ip, self._email_getipintel,
                                                               self._score_needed_getipintel)
-                    self.debug("VPNCheck on_connect for %s [%s]: %s", (sclient.name, sclient.ip, _is_vpn_getipintel))
+                    self.debug("VPNCheck on_connect %s for %s [%s]", (_is_vpn_getipintel, sclient.name, sclient.ip))
                     if _is_vpn_getipintel:
-                        self.debug("VPNCheck: kicking %s" % sclient.name)
                         sclient.kick('VPN/Proxy detected [%s]' % sclient.name, keyword="vpncheck", silent=True)
                         # remove them from recent
                         self._recent_players.pop(sclient.id, None)
+                        # add them to the bad list
+                        self._bad_players[sclient.ip] = datetime.datetime.now()
+                        # log
+                        self.debug("VPNCheck: kicking %s" % sclient.name)
 
             if self._use_proxycheck == 1:
                 if self._key_proxycheck and self._key_proxycheck != "blank":
@@ -331,11 +381,14 @@ class VpncheckPlugin(b3.plugin.Plugin):
 
                     if (proxycheck_response['status'] != "ok"):
                         self.debug("VPNCheck ProxyCheck failed with status %s" % proxycheck_response['status'])
-                    self.debug("VPNCheck on_connect for %s [%s]: %s" % (sclient.name, sclient.ip, proxycheck_response['is_vpn']))
+                    self.debug("VPNCheck on_connect %s for %s [%s]" % (proxycheck_response['is_vpn'], sclient.name, sclient.ip))
                     if proxycheck_response['is_vpn']:
                         sclient.kick('VPN/Proxy detected [%s]' % sclient.name, keyword="vpncheck", silent=True)
                         # remove them from recent
                         self._recent_players.pop(sclient.id, None)
+                        # add them to the bad list
+                        self._bad_players[sclient.ip] = datetime.datetime.now()
+                        # log
                         #self.debug("VPNCheck: kicking %s" % client.name)
                         self.debug("VPNCheck kicking %s [%s]: %s; asn %s; org %s; country %s; region %s; type %s"
                                    % (sclient.name, sclient.ip, str(proxycheck_response['is_vpn'])
@@ -572,7 +625,7 @@ class VpncheckPlugin(b3.plugin.Plugin):
 
         # make the request
         url = "https://proxycheck.io/v2/" + _userip + "?vpn=1&asn=1"
-        self.debug('Requesting URL (%s)' % url)
+        #self.debug('Requesting URL (%s)' % url)
         if _key_proxycheck and _key_proxycheck != "YOURKEY" and _key_proxycheck != "blank":
             url += "&key=" + _key_proxycheck
         headers = { }
@@ -634,7 +687,7 @@ class VpncheckPlugin(b3.plugin.Plugin):
             try:
                 if (data[_userip]["proxy"]).lower() == "yes":
                     is_vpn = True
-                    self.debug("Found True for %s" % _userip)
+                    #self.debug("Found True for %s" % _userip)
             except KeyError:
                 self.warning("key not found: proxy")
 
