@@ -285,6 +285,36 @@ class VpncheckPlugin(b3.plugin.Plugin):
     def checkClient(self, sclient):
         # self.debug("VPNCheck: checkClient")
 
+        # start chunk (use IP Address for bad clients, so if they disconnect from VPN they can connect)
+        # it's more likely that a bad player is going to try to reconnect multiple times, so check that first
+        if self._bad_for_minutes > 0:
+            #last_bad_scanned = None
+            try:
+                # look for the last_bad_scanned
+                last_bad_scanned = self._bad_players[sclient.ip]
+                # if it wasn't in the list we would have hit an exception
+                # remove from the recently scanned good list
+                self._recent_players.pop(sclient.id, None)
+                self.debug('@%s %s was found previously bad ip %s' % (sclient.id, sclient.name, sclient.ip))
+            except KeyError:
+                #self.debug('@%s %s was not recently bad' % (sclient.id, sclient.name))
+                last_bad_scanned = None
+
+            if last_bad_scanned is not None:
+                # check the age
+                current_time = datetime.datetime.now()
+                minutes = (current_time - last_bad_scanned).seconds / 60
+                if minutes < self._bad_for_minutes:
+                    # self.debug('@%s %s was recently bad, skipping vpncheck scan on %s' % (sclient.id, sclient.name, sclient.ip))
+                    sclient.kick('VPN/Proxy recently detected [%s]' % sclient.name, keyword="vpncheck", silent=True)
+                    self.warning("VPNCheck: kicking %s %s previously bad" % (sclient.name, sclient.ip))
+                    return
+                else:
+                    # if the time has expired, remove it
+                    self.debug('@%s %s bad timeout has expired, removing from %s bad list' % (sclient.id, sclient.name, sclient.ip))
+                    self._bad_players.pop(sclient.ip, None)
+        # end chunk
+
         # start chunk (use CID for good clients)
         # note: might want to move this up to onAuth so it doesn't spin up a thread
         try:
@@ -304,33 +334,6 @@ class VpncheckPlugin(b3.plugin.Plugin):
             if minutes < self._store_for_minutes:
                 self.debug('@%s %s was recently checked, skipping vpncheck scan' % (sclient.id, sclient.name))
                 return
-        # end chunk
-
-        # start chunk (use IP Address for bad clients, so if they disconnect from VPN they can connect)
-        if self._bad_for_minutes > 0:
-            #last_bad_scanned = None
-            try:
-                # look for the last_bad_scanned
-                last_bad_scanned = self._bad_players[sclient.ip]
-                # if it wasn't in the list we would have hit an exception
-                self.debug('@%s %s was found previously bad ip %s' % (sclient.id, sclient.name, sclient.ip))
-            except KeyError:
-                #self.debug('@%s %s was not recently bad' % (sclient.id, sclient.name))
-                last_bad_scanned = None
-
-            if last_bad_scanned is not None:
-                # check the age
-                current_time = datetime.datetime.now()
-                minutes = (current_time - last_bad_scanned).seconds / 60
-                if minutes < self._bad_for_minutes:
-                    # self.debug('@%s %s was recently bad, skipping vpncheck scan on %s' % (sclient.id, sclient.name, sclient.ip))
-                    sclient.kick('VPN/Proxy recently detected [%s]' % sclient.name, keyword="vpncheck", silent=True)
-                    self.debug("VPNCheck: kicking %s %s previously bad" % (sclient.name, sclient.ip))
-                    return
-                else:
-                    # if the time has expired, remove it
-                    self.debug('@%s %s bad timeout has expired, removing from %s bad list' % (sclient.id, sclient.name, sclient.ip))
-                    self._bad_players.pop(sclient.ip, None)
         # end chunk
 
         # check the level of the connecting client before applying the filters
@@ -375,7 +378,7 @@ class VpncheckPlugin(b3.plugin.Plugin):
                         # add them to the bad list
                         self._bad_players[sclient.ip] = datetime.datetime.now()
                         # log
-                        self.debug("VPNCheck: kicking %s %s" % (sclient.name, sclient.ip))
+                        self.warning("VPNCheck: kicking %s %s" % (sclient.name, sclient.ip))
 
             if self._use_proxycheck == 1:
                 if self._key_proxycheck and self._key_proxycheck != "blank":
@@ -392,7 +395,7 @@ class VpncheckPlugin(b3.plugin.Plugin):
                             # add them to the bad list
                             self._bad_players[sclient.ip] = datetime.datetime.now()
                         # log
-                        self.debug("VPNCheck kicking %s [%s]: %s; asn %s; org %s; country %s; region %s; type %s"
+                        self.warning("VPNCheck kicking %s [%s]: %s; asn %s; org %s; country %s; region %s; type %s"
                                    % (sclient.name, sclient.ip, str(proxycheck_response['is_vpn'])
                                       , proxycheck_response['asn'], proxycheck_response['org']
                                       , proxycheck_response['isocode'], proxycheck_response['region']
