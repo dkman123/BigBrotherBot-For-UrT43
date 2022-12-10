@@ -245,7 +245,6 @@ class BanlistPlugin(b3.plugin.Plugin):
             self.debug('@%s %s was found previously scanned' % (client.id, client.name))
         except KeyError:
             self.debug('@%s %s was not recently scanned' % (client.id, client.name))
-            self._recent_players[client.id] = datetime.datetime.now()
 
         if last_player_scanned is not None:
             # check the age
@@ -260,16 +259,20 @@ class BanlistPlugin(b3.plugin.Plugin):
         for whitelist in self._whitelists:
             result = whitelist.isBanned(client)
             if result is not False:
+                # found in whitelist
                 self.info('@%s %s, ip:%s, guid:%s. Found in whitelist : %s' % (client.id, client.name, client.ip,
                                                                                client.guid, whitelist.name))
                 msg = whitelist.getMessage(client)
                 if msg and msg != "":
                     self.console.write(msg)
+                # add to list so we don't need to check them for a while
+                self._recent_players[client.id] = datetime.datetime.now()
                 return
 
         for banlist in self._banlists:
             result = banlist.isBanned(client)
             if result is not False:
+                # found in ban list
                 if client.maxLevel < self._immunity_level:
                     # result holds the IP
                     # if you want the IP masked include these 2 lines
@@ -291,6 +294,9 @@ class BanlistPlugin(b3.plugin.Plugin):
                               "due to its level %s" % (client.id, client.name, client.ip,
                                                        client.guid, banlist.name, client.maxLevel))
                     return
+
+        # add to list so we don't need to check them for a while
+        self._recent_players[client.id] = datetime.datetime.now()
 
     def _verboseUpdateBanListFromUrl(self, client, banlist):
         """
@@ -358,6 +364,9 @@ class BanlistPlugin(b3.plugin.Plugin):
         """
         self.debug("%s requested banlist update" % client.name)
 
+        # clear the recent player list
+        self._recent_players.clear()
+
         for banlist in self._banlists:
             if banlist.url is not None:
                 thread.start_new_thread(self._verboseUpdateBanListFromUrl, (client, banlist))
@@ -370,28 +379,35 @@ class BanlistPlugin(b3.plugin.Plugin):
         """
         Check all players against banlists
         """
+        # clear the recent player list
+        self._recent_players.clear()
+
         if client is not None: client.message("checking players ...")
         self.checkConnectedPlayers()
         if client is not None: client.message("^4done")
 
     def cmd_banlistcleanup(self, data=None, client=None, cmd=None):
         """
-        Remove stale entries from the recent ly scanned list
+        Remove stale entries from the recently scanned list
         """
         self.debug("banlistcleanup entered")
-        current_time = datetime.datetime.now()
-        count = 0
-        keys_to_remove = []
-        for key in self._recent_players:
-            minutes = (current_time - self._recent_players[key]).seconds / 60
-            if minutes > self._store_for_minutes:
-                keys_to_remove.append(key)
-        for elem in keys_to_remove:
-            del self._recent_players[elem]
-            count = count + 1
-        self.debug("%d entries culled" % count)
-        if client is not None:
-            client.message("%d entries culled" % count)
+
+        # clear the recent player list
+        self._recent_players.clear()
+
+        # current_time = datetime.datetime.now()
+        # count = 0
+        # keys_to_remove = []
+        # for key in self._recent_players:
+        #     minutes = (current_time - self._recent_players[key]).seconds / 60
+        #     if minutes > self._store_for_minutes:
+        #         keys_to_remove.append(key)
+        # for elem in keys_to_remove:
+        #     del self._recent_players[elem]
+        #    count = count + 1
+        # self.debug("%d entries culled" % count)
+        # if client is not None:
+        #     client.message("%d entries culled" % count)
 
 class Banlist(object):
 
