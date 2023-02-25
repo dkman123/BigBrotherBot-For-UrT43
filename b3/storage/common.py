@@ -549,7 +549,7 @@ class DatabaseStorage(Storage):
         Return a list of available client groups.
         """
         if not self._groups:
-            cursor = self.query(QueryBuilder(self.db).SelectQuery('*', 'groups', None, 'level'))
+            cursor = self.query(QueryBuilder(self.db).SelectQuery('*', 'usergroups', None, 'level'))
             self._groups = []
             while not cursor.EOF:
                 row = cursor.getRow()
@@ -573,7 +573,7 @@ class DatabaseStorage(Storage):
         :return: The group instance given in input with all the fields set.
         """
         if hasattr(group, 'keyword') and group.keyword:
-            query = QueryBuilder(self.db).SelectQuery('*', 'groups', dict(keyword=group.keyword), None, 1)
+            query = QueryBuilder(self.db).SelectQuery('*', 'usergroups', dict(keyword=group.keyword), None, 1)
             self.console.verbose2(query)
             cursor = self.query(query)
             row = cursor.getOneRow()
@@ -581,7 +581,7 @@ class DatabaseStorage(Storage):
                 raise KeyError('no group matching keyword: %s' % group.keyword)
 
         elif hasattr(group, 'level') and group.level >= 0:
-            query = QueryBuilder(self.db).SelectQuery('*', 'groups', dict(level=group.level), None, 1)
+            query = QueryBuilder(self.db).SelectQuery('*', 'usergroups', dict(level=group.level), None, 1)
             self.console.verbose2(query)
             cursor = self.query(query)
             row = cursor.getOneRow()
