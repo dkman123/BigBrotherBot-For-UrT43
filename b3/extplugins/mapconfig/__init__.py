@@ -90,6 +90,8 @@ class MapconfigPlugin(b3.plugin.Plugin):
 	_rnm_history_length = 5
 	rnm_history = []
 
+	built_in_maps = []
+
 	####################################################################################################################
 	#                                                                                                                  #
 	#    STARTUP                                                                                                       #
@@ -209,6 +211,23 @@ class MapconfigPlugin(b3.plugin.Plugin):
 
 		self.debug('rnm_history_length : %s' % self._rnm_history_length)
 
+		# NOTE: _stop_at does not need self. because it's local and only used once
+		try:
+			_stop_at = self.config.getint('built_in_maps', 'stop_at')
+		except (NoOptionError, ValueError):
+			_stop_at = 40
+
+		self.debug('stop_at : %s' % _stop_at)
+
+		_bimerr = 0
+		for loop in range(_stop_at):
+			try:
+				_bim = self.config.get('built_in_maps', 'bim' + str(loop))
+				self.built_in_maps.append(_bim)
+			except (NoOptionError, ValueError):
+				_bimerr = _bimerr + 1
+		self.debug('built in maps loaded : %s', len(self.built_in_maps))
+		self.debug('bim numbers not found : %s', _bimerr)
 
 	####################################################################################################################
 	#                                                                                                                  #
@@ -636,42 +655,4 @@ class MapconfigPlugin(b3.plugin.Plugin):
 		Feel free to comment any maps you don't want chosen
 		"""
 		# add default built-in maps
-		lines.append('ut4_abbey')
-		lines.append('ut4_algiers')
-		lines.append('ut4_ambush')
-		lines.append('ut4_austria')
-		lines.append('ut4_bohemia')
-		lines.append('ut4_casa')
-		###lines.append('ut4_crossing')
-		lines.append('ut4_docks')
-		##lines.append('ut4_eagle')
-		lines.append('ut4_elgin')
-		## lines.append('ut4_firingrange')
-		lines.append('ut4_ghosttown')
-		###lines.append('ut4_harbortown')
-		lines.append('ut4_herring')
-		## lines.append('ut4_killroom')
-		lines.append('ut4_kingdom')
-		lines.append('ut4_kingpin')
-		##lines.append('ut4_mandolin')
-		lines.append('ut4_maya')
-		lines.append('ut4_mykonos')
-		lines.append('ut4_oildepot')
-		lines.append('ut4_paris')
-		lines.append('ut4_prague')
-		## lines.append('ut4_prominence')
-		lines.append('ut4_raiders')
-		lines.append('ut4_ramelle')
-		lines.append('ut4_ricochet')
-		lines.append('ut4_riyadh')
-		lines.append('ut4_sanc')  # map name is sanc, not sanctuary
-		## lines.append('ut4_snoppis')
-		lines.append('ut4_suburbs')
-		##lines.append('ut4_subway')
-		lines.append('ut4_swim')
-		lines.append('ut4_thingley')
-		lines.append('ut4_tombs')
-		#lines.append('ut4_toxic') #removed from the base maps
-		lines.append('ut4_tunis')
-		lines.append('ut4_turnpike')
-		lines.append('ut4_uptown')
+		lines.extend(self.built_in_maps)
