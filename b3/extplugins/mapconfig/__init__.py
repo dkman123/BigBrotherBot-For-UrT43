@@ -219,6 +219,7 @@ class MapconfigPlugin(b3.plugin.Plugin):
 
 		self.debug('stop_at : %s' % _stop_at)
 
+		# load the built-in maps list
 		_bimerr = 0
 		for loop in range(_stop_at):
 			try:
@@ -228,6 +229,10 @@ class MapconfigPlugin(b3.plugin.Plugin):
 				_bimerr = _bimerr + 1
 		self.debug('built in maps loaded : %s', len(self.built_in_maps))
 		self.debug('bim numbers not found : %s', _bimerr)
+
+		if self.random_nextmap == 1:
+			# determine the next random map
+			self.cmd_randomnextmap()
 
 	####################################################################################################################
 	#                                                                                                                  #
@@ -246,7 +251,7 @@ class MapconfigPlugin(b3.plugin.Plugin):
 			self._up_mapname = mapName
 			self.setMapSettings(mapName)
 
-			if (self.random_nextmap == 1):
+			if self.random_nextmap == 1:
 				# add to history
 				self.rnm_history.append(mapName)
 
@@ -261,14 +266,16 @@ class MapconfigPlugin(b3.plugin.Plugin):
 		if (event.type == self.console.getEventID('EVT_GAME_EXIT')) or \
 				(event.type == self.console.getEventID('EVT_GAME_ROUND_END')):
 			# self.debug('onEvent')
-			if self.mapcycle_fileName:
-				if self.random_nextmap == 0:
-					self.cmd_upcoming(self)
-			else:
-				nextmap = self.console.getNextMap()
-				if nextmap:
-					ad = "^2Next map: ^3" + nextmap
-					self.console.say(ad)
+			self.cmd_upcoming(self)
+			#if self.mapcycle_fileName:
+			#	if self.random_nextmap == 0:
+			#		self.cmd_upcoming(self)
+			#else:
+			nextmap = self.console.getNextMap()
+			if nextmap:
+				ad = "^2Next map: ^3" + nextmap
+				self.console.say(ad)
+			# end of the else was here
 
 	####################################################################################################################
 	#                                                                                                                  #
