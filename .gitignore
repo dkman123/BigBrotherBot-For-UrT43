@@ -139,9 +139,6 @@ $RECYCLE.BIN/
 *.lnk
 
 # PyCharm Project files
-.idea
-b3/.idea
-.idea/workspace.xml
-.idea/BigBrotherBot-For-UrT43.iml
-.idea/misc.xml
-
+.idea/
+.vscode/
+*.sw*

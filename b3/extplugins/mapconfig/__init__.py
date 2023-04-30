@@ -81,6 +81,7 @@ class MapconfigPlugin(b3.plugin.Plugin):
 
 	random_nextmap = 0
 	hopper_fileName = ""
+	mapconfig_enabled = 1
 
 	# variables held to reduce processing overhead
 	_up_mapname = ""
@@ -234,6 +235,13 @@ class MapconfigPlugin(b3.plugin.Plugin):
 			# determine the next random map
 			self.cmd_randomnextmap()
 
+		try:
+			self.mapconfig_enabled = self.config.getint('settings', 'mapconfig_enabled')
+		except (NoOptionError, ValueError):
+			self.mapconfig_enabled = 0
+
+		self.debug('mapconfig_enabled : %s' % self.mapconfig_enabled)
+
 	####################################################################################################################
 	#                                                                                                                  #
 	#   EVENTS                                                                                                         #
@@ -249,7 +257,10 @@ class MapconfigPlugin(b3.plugin.Plugin):
 		mapName = event.data._get_mapName()
 		if mapName != self._up_mapname:
 			self._up_mapname = mapName
-			self.setMapSettings(mapName)
+
+			# only set the mapconfig if it's enabled
+			if self.mapconfig_enabled == 1:
+				self.setMapSettings(mapName)
 
 			if self.random_nextmap == 1:
 				# add to history
@@ -285,7 +296,7 @@ class MapconfigPlugin(b3.plugin.Plugin):
 
 	def getMapconfig(self, mapconfig):
 		"""
-		Return an mapconfig object fetching data from the storage.
+		Return a mapconfig object fetching data from the storage.
 		:param mapconfig: The mapconfig object to fill with fetch data.
 		:return: The mapconfig object given in input with all the fields set.
 		"""
@@ -663,3 +674,26 @@ class MapconfigPlugin(b3.plugin.Plugin):
 		"""
 		# add default built-in maps
 		lines.extend(self.built_in_maps)
+
+	def cmd_setmapconfig(self, data=None, client=None, cmd=None):
+		"""
+		<on|off or 1|0> Set the map config option to enabled/disabled.
+		"""
+		# self.debug("setmapconfig entered")
+
+		# if nothing was entered write the param info
+		if not data:
+			client.message('^7invalid data, try !help setmapconfig')
+			return
+
+		# read the data
+		if not data or data not in ('on', 'off', '1', '0'):
+			client.message('^7Invalid or missing data, try !help setmapconfig')
+			return
+
+		if data == 'on' or data == '1':
+			self.mapconfig_enabled = 1
+			cmd.sayLoudOrPM(client, "mapconfig_enabled turned ON")
+		else:
+			self.mapconfig_enabled = 0
+			cmd.sayLoudOrPM(client, "mapconfig_enabled turned OFF")
