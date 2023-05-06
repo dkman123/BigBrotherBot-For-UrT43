@@ -400,7 +400,8 @@ class MapconfigPlugin(b3.plugin.Plugin):
 		"""
 		Set the game settings for this map from the mapconfig table.
 		"""
-		# cmd.sayLoudOrPM(client, 'dosomething %s' % (sclient.cid))
+
+		cmd.sayLoudOrPM(client, '^7mapconfig_enabled : %s' % self.mapconfig_enabled)
 		mapName = self.console.getMap()
 		# mapName = b3.game.getMap()
 		self.debug("map name is %s" % mapName)
@@ -654,7 +655,7 @@ class MapconfigPlugin(b3.plugin.Plugin):
 
 		# if nothing was entered write the param info
 		if not data:
-			client.message('^7invalid data, try !help setrandomnextmap')
+			client.message('^7Current SetRandomNextMap %s, try !help setrandomnextmap for more' % self.random_nextmap)
 			return
 
 		# read the data
