@@ -267,7 +267,7 @@ class MapconfigPlugin(b3.plugin.Plugin):
 				self.rnm_history.append(mapName)
 
 				# remove the first item if the list is long
-				if len(self.rnm_history) > 5:
+				if len(self.rnm_history) > self._rnm_history_length:
 					self.rnm_history.remove(self.rnm_history[0])
 
 				# determine the next random map
@@ -627,9 +627,11 @@ class MapconfigPlugin(b3.plugin.Plugin):
 			self.debug("Number of indexes after adding built-ins %s" % len(lines))
 			# remove last X maps (from history)
 			if len(lines) > len(self.rnm_history) + 1:
-				self.debug("Removing last %s" % len(self.rnm_history))
+				self.debug("Removing recent %s maps" % len(self.rnm_history))
 				for loopmap in range(0, len(self.rnm_history)):
-					lines.remove(self.rnm_history[loopmap])
+					# make sure the item is there before trying to remove it
+					if self.rnm_history[loopmap] in lines:
+						lines.remove(self.rnm_history[loopmap])
 			# pick a random map
 			randInt = random.randrange(0, len(lines))
 			nextMap = lines[randInt]
