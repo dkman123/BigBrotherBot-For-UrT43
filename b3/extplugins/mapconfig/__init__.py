@@ -686,7 +686,7 @@ class MapconfigPlugin(b3.plugin.Plugin):
 
 		# if nothing was entered write the param info
 		if not data:
-			client.message('^7invalid data, try !help setmapconfig')
+			client.message('^7setmapconfig is %s, try !help setmapconfig' % self.mapconfig_enabled)
 			return
 
 		# read the data
