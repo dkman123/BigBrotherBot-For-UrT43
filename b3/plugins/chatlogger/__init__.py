@@ -48,6 +48,7 @@ class ChatloggerPlugin(Plugin):
     _save2db = None
     _save2file = None
     _file_rotation_rate = None
+    _capture_radio = False
 
     ####################################################################################################################
     #                                                                                                                  #
@@ -91,6 +92,17 @@ class ChatloggerPlugin(Plugin):
             self.loadConfig_database()
         if self._save2file:
             self.loadConfig_file()
+
+        try:
+            self._capture_radio = self.config.getboolean('general', 'capture_radio')
+            self.debug('capture_radio : %s', 'enabled' if self._capture_radio else 'disabled')
+        except ConfigParser.NoOptionError:
+            self._capture_radio = False
+            self.info("using default value '%s' for capture_radio", self._capture_radio)
+        except ValueError, e:
+            self._capture_radio = False
+            self.warning('unexpected value for capture_radio: using default value (%s) instead (%s)', self._capture_radio, e)
+
 
     def loadConfig_file(self):
         """
@@ -222,7 +234,7 @@ class ChatloggerPlugin(Plugin):
         if self.console.getEventID('EVT_CLIENT_SQUAD_SAY'):
             self.registerEvent('EVT_CLIENT_SQUAD_SAY', self.onSquadSay)
 
-        if self.console.getEventID('EVT_CLIENT_RADIO'):
+        if self._capture_radio and self.console.getEventID('EVT_CLIENT_RADIO'):
             self.registerEvent('EVT_CLIENT_RADIO', self.onRadio)
 
     ####################################################################################################################
