@@ -50,6 +50,7 @@ class Iourt41Parser(AbstractParser):
     _logSync = 2
     _maplist = None
     _empty_name_default = 'EmptyNameDefault'
+    _empty_app_default = 'Vanilla'
 
     _commands = {
         'ban': 'addip %(cid)s',
@@ -429,6 +430,7 @@ class Iourt41Parser(AbstractParser):
         """
         # 2 \ip\145.99.135.227:27960\challenge\-232198920\qport\2781\protocol\68\battleye\1\name\[SNT]^1XLR^78or...
         # 7 n\[SNT]^1XLR^78or\t\3\r\2\tl\0\f0\\f1\\f2\\a0\0\a1\0\a2\0
+        # NOTE: player_id is slot number
         player_id, info = string.split(info, ' ', 1)
 
         if info[:1] != '\\':
@@ -442,6 +444,18 @@ class Iourt41Parser(AbstractParser):
             data[o[0]] = o[1]
 
         data['cid'] = player_id
+
+        # because using the name client would get confusing we're calling the "client software" app
+        if 'client' in data:
+            if len(data['client']) > 32:
+                data['app'] = data['client'][0:32]
+            else:
+                data['app'] = data['client']
+            #self.debug('NOISY client found in data')
+        else:
+            data['app'] = self._empty_app_default
+            #self.debug('NOISY client not in data')
+
         return data
 
     ####################################################################################################################

@@ -35,6 +35,10 @@
         <set name="store_for_minutes">120</set>
         <!--  bad_for_minutes (int). hold bad connections for this long, so a rescan is not necessary. default = 120 -->
         <set name="bad_for_minutes">120</set>
+        <!-- list of client strings to not allow. (comma delimited, no space [ie "client a,client b") -->
+        <set name="bad_clients">Q3 1.32e</set>
+        <!-- time to temp ban a bad client, in minutes (1440 = 1d) -->
+        <set name="bad_client_time">30</set>
     </settings>
 
     <settings name="messages">

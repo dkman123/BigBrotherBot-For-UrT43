@@ -735,6 +735,7 @@ class Iourt43Parser(Iourt41Parser):
                         self.queueEvent(b3.events.Event(self.getEventID('EVT_CLIENT_GEAR_CHANGE'), v, client))
                     if not k.startswith('_') and k not in ('login', 'password', 'groupBits', 'maskLevel', 'autoLogin', 'greeting'):
                         setattr(client, k, v)
+                        #self.debug("NOISY setting client field %s to %s" % (k, v))
             else:
                 # make a new client
                 if 'cl_guid' in bclient:
@@ -789,6 +790,9 @@ class Iourt43Parser(Iourt41Parser):
                             bclient['ip'] = ''
                             self.warning("Failed to get client %s ip address" % bclient['cid'], err)
 
+                if 'app' not in bclient:
+                    bclient['app'] = self._empty_app_default
+
                 nguid = ''
                 # override the guid... use ip's only if self.console.IpsOnly is set True.
                 if self.IpsOnly:
@@ -805,7 +809,7 @@ class Iourt43Parser(Iourt41Parser):
                 if nguid != '':
                     guid = nguid
 
-                self.clients.newClient(bclient['cid'], name=bclient['name'], ip=bclient['ip'], bot=bot, guid=guid, pbid=fsa)
+                self.clients.newClient(bclient['cid'], name=bclient['name'], ip=bclient['ip'], bot=bot, guid=guid, pbid=fsa, app=bclient['app'])
 
         return None
 

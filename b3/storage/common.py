@@ -193,7 +193,7 @@ class DatabaseStorage(Storage):
         self.console.debug('Storage: setClient %s' % client)
         fields = ('ip', 'greeting', 'connections', 'time_edit',
                   'guid', 'pbid', 'name', 'time_add', 'auto_login',
-                  'mask_level', 'group_bits', 'login', 'password')
+                  'mask_level', 'group_bits', 'login', 'password', 'app')
 
         data = {'id': client.id} if client.id > 0 else {}
 

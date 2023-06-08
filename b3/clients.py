@@ -871,7 +871,7 @@ class Client(object):
 
     def auth(self):
         """
-        Authorize this client client.
+        Authorize this client.
         """
         if not self.authed and self.guid and not self.authorizing:
             self.authorizing = True
