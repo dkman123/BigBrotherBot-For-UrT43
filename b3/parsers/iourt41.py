@@ -673,8 +673,8 @@ class Iourt41Parser(AbstractParser):
         39:     UT_MOD_FLAG === exclusive attackers : , 0(<non-client>)
         40:     UT_MOD_GOOMBA --- normal kill line
         """
-        self.warning("OnKill %s" % match)
-        self.debug('OnKill: %s (%s)' % (match.group('aweap'), match.group('text')))
+        self.warning('OnKill: %s (%s)' % (match.group('aweap'), match.group('text')))
+        #self.debug('OnKill: %s (%s)' % (match.group('aweap'), match.group('text')))
         victim = self.getByCidOrJoinPlayer(match.group('cid'))
         if not victim:
             self.debug('No victim')

@@ -216,7 +216,7 @@ class DatabaseStorage(Storage):
                   'mask_level', 'group_bits', 'login', 'password', 'app', 'isocode')
 
         data = {'id': client.id} if client.id > 0 else {}
-        self.console.warning("NOISY %s setClient saving id:%s; app:%s; isocode:%s" % (client.name, client.id, client.app, client.isocode))
+        self.console.warning("NOISY %s setClient saving id %s; app %s; isocode %s" % (client.name, client.id, client.app, client.isocode))
 
         for f in fields:
             #self.console.debug("NOISY looking at %s", f)
