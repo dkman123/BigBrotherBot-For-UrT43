@@ -136,12 +136,12 @@ class VpncheckPlugin(b3.plugin.Plugin):
             self.error('could not load settings/key_abuseipdb config value: %s' % e)
 
         try:
-            self._email_getipintel = self.config.get('settings', 'email_address_getipintel')
-            self.debug('loaded settings/email_address_getipintel: %s' % self._email_getipintel)
+            self._email_getipintel = self.config.get('settings', 'email_getipintel')
+            self.debug('loaded settings/email_getipintel: %s' % self._email_getipintel)
         except NoOptionError:
-            self.error('could not find settings/email_address_getipintel in config file')
+            self.error('could not find settings/email_getipintel in config file')
         except KeyError, e:
-            self.error('could not load settings/email_address_getipintel config value: %s' % e)
+            self.error('could not load settings/email_getipintel config value: %s' % e)
 
         try:
             self._days_abuseipdb = self.config.getint('settings', 'days_abuseipdb')
@@ -305,12 +305,6 @@ class VpncheckPlugin(b3.plugin.Plugin):
     def checkClient(self, sclient):
         # self.debug("VPNCheck: checkClient")
 
-        # check the level of the connecting client before applying the filters
-        if sclient.maxLevel >= self._immunity_level:
-            self.info('VPNCheck: %s is a high enough level user and allowed to connect. client: %s; immunity: %s' %
-                      (sclient.name, sclient.maxLevel, self._immunity_level))
-            return
-
         # always check client
         if len(self._bad_clients) != 0:
             self.debug("bad clients len %d", len(self._bad_clients))
@@ -323,8 +317,21 @@ class VpncheckPlugin(b3.plugin.Plugin):
                     #self.console.tempban(sclient, reason="bad_client", duration=self._bad_client_time, admin=None, silent=True)
                     sclient.tempban(reason='Bad client', keyword="bad_client", duration=self._bad_client_time, admin=None, silent=True)
             else:
-                self.error("** client does NOT have key app %s")
-                self.debug("client: %s" % sclient)
+                setattr(sclient, 'app', 'None')
+                self.warning("** client does NOT have key app %s", sclient.name)
+                #self.debug("client: %s" % sclient)
+            # if proxycheck is off, save here
+            if self._use_proxycheck == 0:
+                #self.warning("NOISY vpncheck saving client");
+                if not hasattr(sclient, 'isocode'):
+                    setattr(sclient, 'isocode', '')
+                sclient.save()
+
+        # check the level of the connecting client before applying the filters
+        if sclient.maxLevel >= self._immunity_level:
+            self.info('VPNCheck: %s is a high enough level user and allowed to connect. client: %s; immunity: %s' %
+                      (sclient.name, sclient.maxLevel, self._immunity_level))
+            return
 
         # start chunk (use IP Address for bad clients, so if they disconnect from VPN they can connect)
         # it's more likely that a bad player is going to try to reconnect multiple times, so check that first
@@ -431,11 +438,17 @@ class VpncheckPlugin(b3.plugin.Plugin):
                         # add them to the bad list
                         self._bad_players[sclient.ip] = datetime.datetime.now()
                     # log
-                    self.warning("VPNCheck kicking %s [%s]: %s; asn %s; org %s; country %s; region %s; type %s"
+                    self.warning("VPNCheck kicking %s [%s]: %s; asn %s; org %s; country %s; isocode: %s; region %s; type %s"
                                % (sclient.name, sclient.ip, str(proxycheck_response['is_vpn'])
                                   , proxycheck_response['asn'], proxycheck_response['org']
-                                  , proxycheck_response['isocode'], proxycheck_response['region']
-                                  , proxycheck_response['connection_type']))
+                                  , proxycheck_response['country'], proxycheck_response['isocode']
+                                  , proxycheck_response['region'], proxycheck_response['connection_type']))
+                if len(proxycheck_response['isocode']) == 2:
+                    if not hasattr(sclient, 'isocode'):
+                        setattr(sclient, 'isocode', proxycheck_response['isocode'])
+                    else:
+                        sclient.isocode = proxycheck_response['isocode']
+                    sclient.save()
 
     def CheckIPHub(self, _userip, _key_iphub):
         _is_vpn_iphub = False
@@ -657,7 +670,8 @@ class VpncheckPlugin(b3.plugin.Plugin):
         status = ""
         asn = ""
         org = ""
-        # country code
+        country = ""
+        # isocode = country 2 letter code
         isocode = ""
         region = ""
         connection_type = ""
@@ -678,7 +692,7 @@ class VpncheckPlugin(b3.plugin.Plugin):
         except requests.exceptions.SSLError:
             self.error("SSLError connecting to %s", url)
             return {'is_vpn': is_vpn, 'asn': asn, 'org': org, 'isocode': isocode
-                , 'region': region, 'connection_type': connection_type}
+                , 'country': country, 'region': region, 'connection_type': connection_type}
 
         # sample response (json):
 
@@ -743,6 +757,11 @@ class VpncheckPlugin(b3.plugin.Plugin):
                 self.warning("key not found: organisation")
 
             try:
+                country = data[_userip]["country"]
+            except KeyError:
+                self.warning("key not found: country")
+
+            try:
                 isocode = data[_userip]["isocode"]
             except KeyError:
                 self.warning("key not found: isocode")
@@ -758,7 +777,7 @@ class VpncheckPlugin(b3.plugin.Plugin):
                 self.warning("key not found: type")
 
         return {'is_vpn': is_vpn, 'asn': asn, 'org': org, 'isocode': isocode
-            , 'region': region, 'connection_type': connection_type, 'status': status}
+            , 'country': country, 'region': region, 'connection_type': connection_type, 'status': status}
 
     ####################################################################################################################
     #                                                                                                                  #

@@ -507,7 +507,7 @@ class Iourt41Parser(AbstractParser):
         if 'cl_guid' in bclient and not 'pbid' in bclient and self.PunkBuster:
             bclient['pbid'] = bclient['cl_guid']
 
-        self.verbose('Parsed userinfo: %s' % bclient)
+        self.verbose('Parsed user info2: %s' % bclient)
 
         if bclient:
             client = self.clients.getByCID(bclient['cid'])

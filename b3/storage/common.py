@@ -130,6 +130,7 @@ class DatabaseStorage(Storage):
         """
         self.console.debug('Storage: getClient %s' % client)
         where = {'id': client.id} if client.id > 0 else {'guid': client.guid}
+        #self.console.debug("NOISY guid %s" % client.guid)
 
         try:
 
@@ -138,12 +139,29 @@ class DatabaseStorage(Storage):
                 raise KeyError('no client matching guid %s' % client.guid)
 
             found = False
+            # save the new client info
+            saveApp = ""
+            saveIsocode = ""
+            if hasattr(client, 'app'):
+                saveApp = client.app
+            if hasattr(client, 'saveIsocode'):
+                saveIsocode = client.isocode
+
             for k, v in cursor.getRow().iteritems():
                 #if hasattr(client, k) and getattr(client, k):
                 #    # don't set already set items
                 #    continue
                 setattr(client, self.getVar(k), v)
+                #self.console.debug("NOISY getClient setting %s=%s" % (self.getVar(k), v))
                 found = True
+
+            # restore new client info
+            if saveApp != "":
+                #self.console.debug("NOISY getClient using new app")
+                client.app = saveApp
+            if saveIsocode != "":
+                #self.console.debug("NOISY getClient using new isocode")
+                client.isocode = saveIsocode
 
             cursor.close()
             if not found:
@@ -193,12 +211,15 @@ class DatabaseStorage(Storage):
         self.console.debug('Storage: setClient %s' % client)
         fields = ('ip', 'greeting', 'connections', 'time_edit',
                   'guid', 'pbid', 'name', 'time_add', 'auto_login',
-                  'mask_level', 'group_bits', 'login', 'password', 'app')
+                  'mask_level', 'group_bits', 'login', 'password', 'app', 'isocode')
 
         data = {'id': client.id} if client.id > 0 else {}
+        #self.console.debug("NOISY setClient saving id:%s; app:%s; isocode:%s" % (client.id, client.app, client.isocode))
 
         for f in fields:
+            #self.console.debug("NOISY looking at %s", f)
             if hasattr(client, self.getVar(f)):
+                #self.console.debug("NOISY setClient setting %s=%s" % (f, self.getVar(f)))
                 data[f] = getattr(client, self.getVar(f))
 
         self.console.debug('Storage: setClient data %s' % data)
