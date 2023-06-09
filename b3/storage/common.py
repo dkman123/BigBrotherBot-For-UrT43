@@ -155,6 +155,7 @@ class DatabaseStorage(Storage):
                 #self.console.debug("NOISY getClient setting %s=%s" % (self.getVar(k), v))
                 found = True
 
+            self.console.warning("NOISY getClient %s getting app %s; new %s" % (client.name, client.app, saveApp))
             # restore new client info
             if saveApp != "":
                 #self.console.debug("NOISY getClient using new app")
@@ -162,6 +163,7 @@ class DatabaseStorage(Storage):
             if saveIsocode != "":
                 #self.console.debug("NOISY getClient using new isocode")
                 client.isocode = saveIsocode
+
 
             cursor.close()
             if not found:
@@ -214,7 +216,7 @@ class DatabaseStorage(Storage):
                   'mask_level', 'group_bits', 'login', 'password', 'app', 'isocode')
 
         data = {'id': client.id} if client.id > 0 else {}
-        #self.console.debug("NOISY setClient saving id:%s; app:%s; isocode:%s" % (client.id, client.app, client.isocode))
+        self.console.warning("NOISY setClient saving id:%s; app:%s; isocode:%s" % (client.id, client.app, client.isocode))
 
         for f in fields:
             #self.console.debug("NOISY looking at %s", f)

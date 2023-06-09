@@ -735,6 +735,8 @@ class Iourt43Parser(Iourt41Parser):
                         self.queueEvent(b3.events.Event(self.getEventID('EVT_CLIENT_GEAR_CHANGE'), v, client))
                     if not k.startswith('_') and k not in ('login', 'password', 'groupBits', 'maskLevel', 'autoLogin', 'greeting'):
                         setattr(client, k, v)
+                        if k == 'app':
+                            self.warning("NOISY iourt43 %s setting app to %s" % (client.name, v))
                         #self.debug("NOISY iourt43 setting client field %s to %s" % (k, v))
             else:
                 # make a new client

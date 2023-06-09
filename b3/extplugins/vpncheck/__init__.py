@@ -309,7 +309,7 @@ class VpncheckPlugin(b3.plugin.Plugin):
         if len(self._bad_clients) != 0:
             self.debug("bad clients len %d", len(self._bad_clients))
             if hasattr(sclient, 'app'):
-                self.error("** has key app %s", sclient.app)
+                #self.debug("checkclient %s has key app %s" % (sclient.name, sclient.app))
                 if sclient.app in self._bad_client_list:
                     self.warning("Bad client %s using %s. TempBanning for %d minutes", sclient.name, sclient.app, self._bad_client_time)
                     #sclient.kick('Bad client [%s]' % sclient.name, keyword="bad_client", silent=True)
@@ -325,6 +325,7 @@ class VpncheckPlugin(b3.plugin.Plugin):
                 #self.warning("NOISY vpncheck saving client");
                 if not hasattr(sclient, 'isocode'):
                     setattr(sclient, 'isocode', '')
+                self.warning("VPNCheck saving %s; app:%s; isocode:%s" % (sclient.name, sclient.app, sclient.isocode))
                 sclient.save()
 
         # check the level of the connecting client before applying the filters
@@ -448,6 +449,7 @@ class VpncheckPlugin(b3.plugin.Plugin):
                         setattr(sclient, 'isocode', proxycheck_response['isocode'])
                     else:
                         sclient.isocode = proxycheck_response['isocode']
+                    self.warning("VPNCheck saving %s; app:%s; isocode:%s" % (sclient.name, sclient.app, sclient.isocode))
                     sclient.save()
 
     def CheckIPHub(self, _userip, _key_iphub):
@@ -715,7 +717,7 @@ class VpncheckPlugin(b3.plugin.Plugin):
         # parse the data
         try:
             data = request.json()
-            self.warning("DEBUG %s", str(data))
+            #self.warning("DEBUG %s", str(data))
         except ValueError:
             self.warning("got non-json response from %s", url)
             return {'is_vpn': is_vpn, 'asn': asn, 'org': org, 'isocode': isocode
