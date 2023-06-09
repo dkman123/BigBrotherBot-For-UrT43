@@ -722,6 +722,25 @@ class Iourt43Parser(Iourt41Parser):
         if 'team' in bclient:
             bclient['team'] = self.getTeam(bclient['team'])
 
+        # because using the name client would get confusing we're calling the "client software" app
+        if 'client' in bclient:
+            if len(bclient['client']) > 32:
+                bclient['app'] = bclient['client'][0:32]
+            else:
+                bclient['app'] = bclient['client']
+            #self.debug('NOISY client found in bclient')
+        else:
+            bclient['app'] = self._empty_app_default
+            #self.debug('NOISY client not in bclient')
+
+        if 'isocode' in bclient:
+            #if len(bclient['isocode']) > 2:
+            #    bclient['isocode'] = bclient['isocode'][0:2]
+            #else:
+            bclient['isocode'] = bclient['isocode']
+        else:
+            bclient['isocode'] = ''
+
         self.verbose('Parsed user info1: %s' % bclient)
 
         if bclient:
@@ -733,10 +752,11 @@ class Iourt43Parser(Iourt41Parser):
                 for k, v in bclient.iteritems():
                     if hasattr(client, 'gear') and k == 'gear' and client.gear != v:
                         self.queueEvent(b3.events.Event(self.getEventID('EVT_CLIENT_GEAR_CHANGE'), v, client))
-                    if not k.startswith('_') and k not in ('login', 'password', 'groupBits', 'maskLevel', 'autoLogin', 'greeting'):
+                    if not k.startswith('_') and k not in ('login', 'password', 'groupBits', 'maskLevel', 'autoLogin', 'greeting', 'app'):
                         setattr(client, k, v)
-                        if k == 'app':
-                            self.warning("NOISY iourt43 %s; id %s setting app to %s" % (client.name, client.id, v))
+                    if k == 'app' and client.app == "":
+                        setattr(client, k, v)
+                        self.warning("NOISY iourt43 %s; id %s setting app to %s" % (client.name, client.id, v))
                         #self.debug("NOISY iourt43 setting client field %s to %s" % (k, v))
             else:
                 # make a new client
@@ -795,8 +815,8 @@ class Iourt43Parser(Iourt41Parser):
                 if 'app' not in bclient:
                     bclient['app'] = ''
 
-                if 'country' not in bclient:
-                    bclient['country'] = ''
+                if 'isocode' not in bclient:
+                    bclient['isocode'] = ''
 
                 nguid = ''
                 # override the guid... use ip's only if self.console.IpsOnly is set True.
@@ -814,7 +834,7 @@ class Iourt43Parser(Iourt41Parser):
                 if nguid != '':
                     guid = nguid
 
-                self.clients.newClient(bclient['cid'], name=bclient['name'], ip=bclient['ip'], bot=bot, guid=guid, pbid=fsa, app=bclient['app'], country=bclient['country'])
+                self.clients.newClient(bclient['cid'], name=bclient['name'], ip=bclient['ip'], bot=bot, guid=guid, pbid=fsa, app=bclient['app'], isocode=bclient['isocode'])
 
         return None
 

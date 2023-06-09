@@ -445,17 +445,6 @@ class Iourt41Parser(AbstractParser):
 
         data['cid'] = player_id
 
-        # because using the name client would get confusing we're calling the "client software" app
-        if 'client' in data:
-            if len(data['client']) > 32:
-                data['app'] = data['client'][0:32]
-            else:
-                data['app'] = data['client']
-            #self.debug('NOISY client found in data')
-        else:
-            data['app'] = self._empty_app_default
-            #self.debug('NOISY client not in data')
-
         return data
 
     ####################################################################################################################
@@ -673,8 +662,8 @@ class Iourt41Parser(AbstractParser):
         39:     UT_MOD_FLAG === exclusive attackers : , 0(<non-client>)
         40:     UT_MOD_GOOMBA --- normal kill line
         """
-        self.warning('OnKill: %s (%s)' % (match.group('aweap'), match.group('text')))
-        #self.debug('OnKill: %s (%s)' % (match.group('aweap'), match.group('text')))
+        #self.warning('OnKill: %s (%s)' % (match.group('aweap'), match.group('text')))
+        self.debug('OnKill: %s (%s)' % (match.group('aweap'), match.group('text')))
         victim = self.getByCidOrJoinPlayer(match.group('cid'))
         if not victim:
             self.debug('No victim')
