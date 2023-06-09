@@ -449,7 +449,7 @@ class VpncheckPlugin(b3.plugin.Plugin):
                         setattr(sclient, 'isocode', proxycheck_response['isocode'])
                     else:
                         sclient.isocode = proxycheck_response['isocode']
-                    self.warning("VPNCheck saving %s; app %s; isocode %s" % (sclient.name, sclient.app, sclient.isocode))
+                    #self.warning("VPNCheck saving %s; app %s; isocode %s" % (sclient.name, sclient.app, sclient.isocode))
                     sclient.save()
 
     def CheckIPHub(self, _userip, _key_iphub):
