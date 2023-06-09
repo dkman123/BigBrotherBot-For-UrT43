@@ -733,12 +733,7 @@ class Iourt43Parser(Iourt41Parser):
             bclient['app'] = self._empty_app_default
             #self.debug('NOISY client not in bclient')
 
-        if 'isocode' in bclient:
-            #if len(bclient['isocode']) > 2:
-            #    bclient['isocode'] = bclient['isocode'][0:2]
-            #else:
-            bclient['isocode'] = bclient['isocode']
-        else:
+        if 'isocode' not in bclient:
             bclient['isocode'] = ''
 
         self.verbose('Parsed user info1: %s' % bclient)
