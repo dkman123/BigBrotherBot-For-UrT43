@@ -730,7 +730,7 @@ class Iourt43Parser(Iourt41Parser):
                 bclient['app'] = bclient['client']
             #self.debug('NOISY client found in bclient')
         else:
-            bclient['app'] = self._empty_app_default
+            bclient['app'] = ''
             #self.debug('NOISY client not in bclient')
 
         if 'isocode' not in bclient:
@@ -749,10 +749,10 @@ class Iourt43Parser(Iourt41Parser):
                         self.queueEvent(b3.events.Event(self.getEventID('EVT_CLIENT_GEAR_CHANGE'), v, client))
                     if not k.startswith('_') and k not in ('login', 'password', 'groupBits', 'maskLevel', 'autoLogin', 'greeting', 'app'):
                         setattr(client, k, v)
+                        #self.debug("NOISY iourt43 setting client field %s to %s" % (k, v))
                     if k == 'app' and client.app == "":
                         setattr(client, k, v)
-                        self.warning("NOISY iourt43 %s; id %s setting app to %s" % (client.name, client.id, v))
-                        #self.debug("NOISY iourt43 setting client field %s to %s" % (k, v))
+                        #self.console.warning("NOISY iourt43 %s; id %s setting app to %s" % (client.name, client.id, v))
             else:
                 # make a new client
                 if 'cl_guid' in bclient:

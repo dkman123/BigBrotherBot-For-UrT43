@@ -50,7 +50,7 @@ class Iourt41Parser(AbstractParser):
     _logSync = 2
     _maplist = None
     _empty_name_default = 'EmptyNameDefault'
-    _empty_app_default = 'Vanilla'
+    #_empty_app_default = 'Vanilla'
 
     _commands = {
         'ban': 'addip %(cid)s',
