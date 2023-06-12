@@ -155,6 +155,9 @@ class AbusePlugin(b3.plugin.Plugin):
                 (event.type == self.console.getEventID('EVT_CLIENT_AUTH')):
             # self.debug("onEvent: in Connect/Auth; id %s; cid %s" % (event.client.id, event.client.cid))
 
+            if event.client.maxLevel >= self._immunity_level:
+                return
+
             self.warning("Abuse: checking permmute")
             if hasattr(event.client, 'permmute'):
                 self.warning("Abuse: user has permmute field %s of %s" % (event.client.name, event.client.permmute))
