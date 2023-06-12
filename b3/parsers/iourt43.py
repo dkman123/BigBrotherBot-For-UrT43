@@ -736,6 +736,9 @@ class Iourt43Parser(Iourt41Parser):
         if 'isocode' not in bclient:
             bclient['isocode'] = ''
 
+        if 'permmute' not in bclient:
+            bclient['permmute'] = '0'
+
         self.verbose('Parsed user info1: %s' % bclient)
 
         if bclient:

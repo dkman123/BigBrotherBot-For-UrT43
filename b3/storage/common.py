@@ -155,6 +155,8 @@ class DatabaseStorage(Storage):
                 #self.console.debug("NOISY getClient setting %s=%s" % (self.getVar(k), v))
                 found = True
 
+            self.console.debug('Storage: getClient after %s' % client)
+
             #self.console.warning("NOISY getClient %s; id %s getting app %s; new %s" % (client.name, client.id, client.app, saveApp))
             # restore new client info
             if saveApp != "":
@@ -213,10 +215,13 @@ class DatabaseStorage(Storage):
         self.console.debug('Storage: setClient %s' % client)
         fields = ('ip', 'greeting', 'connections', 'time_edit',
                   'guid', 'pbid', 'name', 'time_add', 'auto_login',
-                  'mask_level', 'group_bits', 'login', 'password', 'app', 'isocode')
+                  'mask_level', 'group_bits', 'login', 'password', 'app', 'isocode', 'permmute')
+
+        #if not hasattr(client, 'permmute'):
+        #    setattr(client, 'permmute', 0)
 
         data = {'id': client.id} if client.id > 0 else {}
-        #self.console.warning("NOISY %s setClient saving id %s; app %s; isocode %s" % (client.name, client.id, client.app, client.isocode))
+        self.console.warning("NOISY %s setClient saving id %s; app %s; isocode %s; permmute %s" % (client.name, client.id, client.app, client.isocode, client.permmute))
 
         for f in fields:
             #self.console.debug("NOISY looking at %s", f)
