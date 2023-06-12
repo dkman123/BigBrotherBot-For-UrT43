@@ -158,11 +158,11 @@ class AbusePlugin(b3.plugin.Plugin):
             if event.client.maxLevel >= self._immunity_level:
                 return
 
-            self.warning("Abuse: checking permmute")
+            #self.warning("Abuse: checking permmute")
             if hasattr(event.client, 'permmute'):
-                self.warning("Abuse: user has permmute field %s of %s" % (event.client.name, event.client.permmute))
+                #self.warning("Abuse: user has permmute field %s of %s" % (event.client.name, event.client.permmute))
                 if event.client.permmute == 1:
-                    self.warning("Abuse: user has permmute ON %s, sending mute (slot cid %s)" % (event.client.name, event.client.cid))
+                    #self.warning("Abuse: user has permmute ON %s, sending mute (slot cid %s)" % (event.client.name, event.client.cid))
                     self.console.write("mute %s %s" % (event.client.cid, 60 * 60))
 
             if event.client.id not in self._permmutelist:
