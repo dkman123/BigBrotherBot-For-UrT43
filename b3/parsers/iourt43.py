@@ -832,7 +832,7 @@ class Iourt43Parser(Iourt41Parser):
                 if nguid != '':
                     guid = nguid
 
-                self.clients.newClient(bclient['cid'], name=bclient['name'], ip=bclient['ip'], bot=bot, guid=guid, pbid=fsa, app=bclient['app'], isocode=bclient['isocode'])
+                self.clients.newClient(bclient['cid'], name=bclient['name'], ip=bclient['ip'], bot=bot, guid=guid, pbid=fsa, app=bclient['app'], isocode=bclient['isocode'], permmute=bclient['permmute'])
 
         return None
 
