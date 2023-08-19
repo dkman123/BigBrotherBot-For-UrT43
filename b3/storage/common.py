@@ -140,8 +140,8 @@ class DatabaseStorage(Storage):
 
             found = False
             # save the new client info
-            saveApp = ""
-            saveIsocode = ""
+            saveApp = "_"
+            saveIsocode = "_"
             if hasattr(client, 'app'):
                 saveApp = client.app
             if hasattr(client, 'saveIsocode'):
@@ -159,10 +159,10 @@ class DatabaseStorage(Storage):
 
             #self.console.warning("NOISY getClient %s; id %s getting app %s; new %s" % (client.name, client.id, client.app, saveApp))
             # restore new client info
-            if saveApp != "":
+            if saveApp != "_":
                 #self.console.debug("NOISY getClient using new app")
                 client.app = saveApp
-            if saveIsocode != "":
+            if saveIsocode != "_":
                 #self.console.debug("NOISY getClient using new isocode")
                 client.isocode = saveIsocode
 
@@ -439,6 +439,9 @@ class DatabaseStorage(Storage):
                     penalty.reason = penalty.reason.encode('UTF-8', 'replace')
                 except Exception, msg:
                     self.console.warning('ERROR: encoding reason: %r', msg)
+            # make sure it can't be too long
+            if len(penalty.reason) > 254:
+                penalty.reason = penalty.reason[0:254]
 
         for f in fields:
             if hasattr(penalty, self.getVar(f)):

@@ -35,10 +35,14 @@
         <set name="store_for_minutes">120</set>
         <!--  bad_for_minutes (int). hold bad connections for this long, so a rescan is not necessary. default = 120 -->
         <set name="bad_for_minutes">120</set>
-        <!-- list of client strings to not allow. (comma delimited, no space [ie "client a,client b") -->
-        <set name="bad_clients">Q3 1.32e</set>
-        <!-- time to temp ban a bad client, in minutes (1440 = 1d) -->
-        <set name="bad_client_time">30</set>
+        <!-- list of client strings to not allow (blacklist). (comma delimited, no space [ie "client a,client b") -->
+        <set name="blacklist_clients">Q3 1.32e</set>
+        <!-- time to temp ban a blacklist client, in minutes (1440 = 1d) -->
+        <set name="blacklist_client_time">120</set>
+        <!-- list of client strings to allow. (comma delimited, no space [ie "client a,client b"). if whitelist_clients is not empty it will block any unspecified client -->
+        <set name="whitelist_clients">FTWGL,UrtSlim-Q3e</set>
+        <!-- time to temp ban an invalid client (not in whitelist), in minutes (1440 = 1d) -->
+        <set name="non_whitelist_client_time">120</set>
     </settings>
 
     <settings name="messages">

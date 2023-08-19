@@ -69,9 +69,12 @@ class VpncheckPlugin(b3.plugin.Plugin):
     _bad_players = {}
     _store_for_minutes = 120
     _bad_for_minutes = 120
-    _bad_clients = ""
-    _bad_client_time = 1440
-    _bad_client_list = {}
+    _blacklist_clients = ""
+    _blacklist_client_time = 120
+    _blacklist_client_list = {}
+    _whitelist_clients = ""
+    _whitelist_client_list = {}
+    _non_whitelist_client_time = 120
 
     ####################################################################################################################
     #                                                                                                                  #
@@ -263,21 +266,38 @@ class VpncheckPlugin(b3.plugin.Plugin):
             self.debug('using default value (%s) for settings/_store_for_minutes' % self._store_for_minutes)
 
         try:
-            self._bad_clients = self.config.get('settings', 'bad_clients')
-            self.debug('loaded settings/bad_clients: %s' % self._bad_clients)
-            self._bad_client_list = self._bad_clients.split(',')
+            self._blacklist_clients = self.config.get('settings', 'blacklist_clients')
+            self.debug('loaded settings/blacklist_clients: %s' % self._blacklist_clients)
+            self._blacklist_client_list = self._blacklist_clients.split(',')
         except NoOptionError:
-            self.error('could not find settings/bad_clients in config file')
+            self.error('could not find settings/blacklist_clients in config file')
         except KeyError, e:
-            self.error('could not load settings/bad_clients config value: %s' % e)
+            self.error('could not load settings/blacklist_clients config value: %s' % e)
 
         try:
-            self._bad_client_time = self.config.getint('settings', 'bad_client_time')
-            self.debug('loaded settings/bad_client_time: %s' % self._bad_client_time)
+            self._blacklist_client_time = self.config.getint('settings', 'blacklist_client_time')
+            self.debug('loaded settings/blacklist_client_time: %s' % self._blacklist_client_time)
         except NoOptionError:
-            self.error('could not find settings/bad_client_time in config file')
+            self.error('could not find settings/blacklist_client_time in config file')
         except KeyError, e:
-            self.error('could not load settings/bad_client_time config value: %s' % e)
+            self.error('could not load settings/blacklist_client_time config value: %s' % e)
+
+        try:
+            self._whitelist_clients = self.config.get('settings', 'whitelist_clients')
+            self.debug('loaded settings/whitelist_clients: %s' % self._whitelist_clients)
+            self._whitelist_client_list = self._whitelist_clients.split(',')
+        except NoOptionError:
+            self.error('could not find settings/whitelist_clients in config file')
+        except KeyError, e:
+            self.error('could not load settings/whitelist_clients config value: %s' % e)
+
+        try:
+            self._non_whitelist_client_time = self.config.getint('settings', 'non_whitelist_client_time')
+            self.debug('loaded settings/non_whitelist_client_time: %s' % self._non_whitelist_client_time)
+        except NoOptionError:
+            self.error('could not find settings/non_whitelist_client_time in config file')
+        except KeyError, e:
+            self.error('could not load settings/non_whitelist_client_time config value: %s' % e)
 
     ####################################################################################################################
     #                                                                                                                  #
@@ -306,16 +326,41 @@ class VpncheckPlugin(b3.plugin.Plugin):
         # self.debug("VPNCheck: checkClient")
 
         # always check client
-        if len(self._bad_clients) != 0:
-            self.debug("bad clients len %d", len(self._bad_clients))
+        if len(self._blacklist_clients) != 0:
+            self.debug("blacklist clients len %d", len(self._blacklist_clients))
             if hasattr(sclient, 'app'):
                 #self.debug("checkclient %s has key app %s" % (sclient.name, sclient.app))
-                if sclient.app in self._bad_client_list:
-                    self.warning("Bad client %s using %s. TempBanning for %d minutes", sclient.name, sclient.app, self._bad_client_time)
-                    #sclient.kick('Bad client [%s]' % sclient.name, keyword="bad_client", silent=True)
+                if sclient.app in self._blacklist_client_list:
+                    self.warning("Blacklist client %s using %s. TempBanning for %d minutes", sclient.name, sclient.app, self._blacklist_client_time)
+                    #sclient.kick('Bad client [%s]' % sclient.name, keyword="blacklist_client", silent=True)
                     # duration is in minutes
-                    #self.console.tempban(sclient, reason="bad_client", duration=self._bad_client_time, admin=None, silent=True)
-                    sclient.tempban(reason='Bad client', keyword="bad_client", duration=self._bad_client_time, admin=None, silent=True)
+                    #self.console.tempban(sclient, reason="blacklist_client", duration=self._blacklist_client_time, admin=None, silent=True)
+                    sclient.tempban(reason='Blacklist client ' + self.SafeString(sclient.app), keyword="blacklist_client", duration=self._blacklist_client_time, admin=None, silent=True)
+            else:
+                setattr(sclient, 'app', 'None')
+                self.warning("** client does NOT have key app %s", sclient.name)
+                #self.debug("client: %s" % sclient)
+            # if proxycheck is off, save here
+            if self._use_proxycheck == 0:
+                #self.warning("NOISY vpncheck saving client");
+                if not hasattr(sclient, 'isocode'):
+                    setattr(sclient, 'isocode', '')
+                self.warning("VPNCheck saving %s; app %s; isocode %s" % (sclient.name, sclient.app, sclient.isocode))
+                sclient.save()
+
+        # check if whitelist client specification is not empty
+        if len(self._whitelist_clients) != 0:
+            self.debug("good clients len %d", len(self._whitelist_clients))
+            if hasattr(sclient, 'app'):
+                self.debug("checkclient %s has key app %s; clean %s" % (sclient.name, sclient.app, self.SafeString(sclient.app)))
+                if sclient.app != "" and sclient.app not in self._whitelist_client_list:
+                    self.warning("Non whitelist client %s using %s. TempBanning for %d minutes", sclient.name, sclient.app, self._non_whitelist_client_time)
+                    #sclient.kick('Non whitelist client [%s]' % sclient.name, keyword="blacklist_client", silent=True)
+                    # duration is in minutes
+                    #self.console.tempban(sclient, reason="non_whitelist_client", duration=self._blacklist_client_time, admin=None, silent=True)
+                    reason = 'Non whitelist client ' + self.SafeString(sclient.app)
+                    self.debug("reason %s" % reason)
+                    sclient.tempban(reason=reason, keyword="non_whitelist_client", duration=self._non_whitelist_client_time, admin=None, silent=True)
             else:
                 setattr(sclient, 'app', 'None')
                 self.warning("** client does NOT have key app %s", sclient.name)
@@ -451,6 +496,9 @@ class VpncheckPlugin(b3.plugin.Plugin):
                         sclient.isocode = proxycheck_response['isocode']
                     #self.warning("VPNCheck saving %s; app %s; isocode %s" % (sclient.name, sclient.app, sclient.isocode))
                     sclient.save()
+
+    def SafeString(self, _str):
+        return _str.replace('\'', '').replace(';', '').replace('`', '')
 
     def CheckIPHub(self, _userip, _key_iphub):
         _is_vpn_iphub = False
