@@ -1017,7 +1017,14 @@ class AdminPlugin(b3.plugin.Plugin):
 
         duration = functions.time2minutes(duration)
 
+
         if penalty_type == self.PENALTY_KICK:
+            # if reason contains with "Rule #" and client level mod+ (mod = 20) then exit
+            if "Rule #" in reason and client.maxLevel >= 20:
+                # whisper the message to them
+                client.message('reason')
+                self.debug("**penalizeClient: client %s %s" % (client.exactName, reason))
+                return
             client.kick(reason, keyword, admin, False, data)
         elif penalty_type == self.PENALTY_TEMPBAN:
             client.tempban(reason, keyword, duration, admin, False, data)
@@ -1160,7 +1167,13 @@ class AdminPlugin(b3.plugin.Plugin):
 
         duration = self.warnKickDuration(sclient)
         # self.debug("warnKick: client %s; duration %s" % (sclient.exactName, duration))
-        if duration > 0:
+        if duration > 0:            
+            # if reason contains with "Rule #" and client level mod+ (mod = 20) then exit
+            if "Rule #" in warn.reason and client.maxLevel >= 20:
+                # whisper the message to them
+                sclient.message(warn.reason)
+                self.debug("**penalizeClient: client %s %s" % (client.exactName, warn.reason))
+                return
             sclient.tempban(self.config.getTextTemplate('warn', 'reason', reason=msg), keyword,
                             duration, client, False, data)
 
