@@ -221,7 +221,7 @@ class DatabaseStorage(Storage):
         #    setattr(client, 'permmute', 0)
 
         data = {'id': client.id} if client.id > 0 else {}
-        self.console.warning("NOISY %s setClient saving id %s; app %s; isocode %s; permmute %s" % (client.name, client.id, client.app, client.isocode, client.permmute))
+        #self.console.warning("NOISY %s setClient saving id %s; app %s; isocode %s; permmute %s" % (client.name, client.id, client.app, client.isocode, client.permmute))
 
         for f in fields:
             #self.console.debug("NOISY looking at %s", f)
@@ -229,7 +229,7 @@ class DatabaseStorage(Storage):
                 #self.console.debug("NOISY setClient setting %s=%s" % (f, self.getVar(f)))
                 data[f] = getattr(client, self.getVar(f))
 
-        self.console.debug('Storage: setClient data %s' % data)
+        #self.console.debug('Storage: setClient data %s' % data)
         if client.id > 0:
             self.query(QueryBuilder(self.db).UpdateQuery(data, 'clients', {'id': client.id}))
         else:
