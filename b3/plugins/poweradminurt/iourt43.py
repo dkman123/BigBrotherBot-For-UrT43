@@ -480,6 +480,282 @@ class Poweradminurt43Plugin(Poweradminurt41Plugin):
 
         client.message("^3Successfully swapped %s and %s" % (client1.name, client2.name))
 
+    def cmd_paswap2(self, data, client, cmd=None):
+        """
+        Swap the second player on the winning team with the 2nd from bottom on the losing team.
+        """
+        # check the input
+        args = self._adminPlugin.parseUserCmd(data)
+
+        # get the team and points information
+        #clients = self.console.clients.getList()
+        listplayers = self.console.write('players')
+        # output looks like
+        #Map: ut4_algiers\n
+        #Players: 4\n
+        #GameType: CTF\n
+        #Scores: R:2 B:4\n
+        #MatchMode: OFF\n
+        #WarmupPhase: NO\n
+        #GameTime: 01:12:00\n
+        #0:|RFA|Tutone TEAM:SPECTATOR KILLS:0 DEATHS:0 ASSISTS:0 PING:0 AUTH:--- IP:1.2.3.4:27960\n
+        #CTF: CAP:0 RET:0 KFC:0 STC:0 PRF:0\n
+        #1:Testing TEAM:BLUE KILLS:12 DEATHS:13 ASSISTS:5 PING:50 AUTH:--- IP:2.3.4.5:27960\n
+        #CTF: CAP:1 RET:0 KFC:0 STC:0 PRF:0\n
+        #22:i814them TEAM:RED KILLS:40 DEATHS:22 ASSISTS:16 PING:275 AUTH:i814them IP:9.88.77.66:27960\n
+        #CTF: CAP:0 RET:2 KFC:0 STC:0 PRF:0\n
+
+        # DEBUG
+        #listplayers = "Map: ut4_algiers\nPlayers: 4\nGameType: CTF\nScores: R:2 B:4\nMatchMode: OFF\nWarmupPhase: NO\nGameTime: 01:12:00\n0:|RFA|Tutone TEAM:SPECTATOR KILLS:0 DEATHS:0 ASSISTS:0 PING:0 AUTH:--- IP:1.2.3.4:27960\nCTF: CAP:0 RET:2 KFC:0 STC:0 PRF:0\n1:Testing TEAM:BLUE KILLS:12 DEATHS:13 ASSISTS:5 PING:50 AUTH:--- IP:2.3.4.5:27960\nCTF: CAP:0 RET:2 KFC:0 STC:0 PRF:0\n6:hate TEAM:BLUE KILLS:60 DEATHS:62 ASSISTS:16 PING:275 AUTH:--- IP:9.88.77.66:27960\nCTF: CAP:0 RET:2 KFC:0 STC:0 PRF:0\n7:something TEAM:BLUE KILLS:12 DEATHS:12 ASSISTS:16 PING:275 AUTH:--- IP:9.88.77.66:27960\nCTF: CAP:0 RET:2 KFC:0 STC:0 PRF:0\n9:jelly TEAM:BLUE KILLS:8 DEATHS:60 ASSISTS:16 PING:275 AUTH:--- IP:9.88.77.66:27960\nCTF: CAP:0 RET:2 KFC:0 STC:0 PRF:0\n10:love TEAM:RED KILLS:50 DEATHS:22 ASSISTS:16 PING:275 AUTH:--- IP:9.88.77.66:27960\nCTF: CAP:0 RET:2 KFC:0 STC:0 PRF:0\n12:killemall TEAM:RED KILLS:20 DEATHS:22 ASSISTS:16 PING:275 AUTH:--- IP:9.88.77.66:27960\nCTF: CAP:0 RET:2 KFC:0 STC:0 PRF:0\n22:i814them TEAM:RED KILLS:40 DEATHS:22 ASSISTS:16 PING:275 AUTH:i814them IP:9.88.77.66:27960\nCTF: CAP:0 RET:2 KFC:0 STC:0 PRF:0\n23:john TEAM:RED KILLS:4 DEATHS:2 ASSISTS:6 PING:275 AUTH:--- IP:9.88.77.66:27960\nCTF: CAP:0 RET:2 KFC:0 STC:0 PRF:0\n"
+
+        self.verbose("listplayers %s" % (listplayers))
+        lines = listplayers.split('\n')
+        SCORES = 3
+        FIRSTPLAYER = 7
+
+        REDSCORE = 1
+        BLUESCORE = 2
+
+        scoreLine = lines[SCORES].split(" ")
+        redScore = int(scoreLine[REDSCORE].split(":")[1])
+        blueScore = int(scoreLine[BLUESCORE].split(":")[1])
+
+        self.verbose("Red: %s, Blue %s" % (redScore, blueScore))
+
+        PLAYER = 0
+        TEAM = 1
+        KILLS = 2
+        DEATHS = 3
+        redteam = []
+        blueteam = []
+        redkdr = 0
+        bluekdr = 0
+        index = 0
+        for line in lines:
+            index = index + 1
+            if index < FIRSTPLAYER + 1:
+                continue
+            if line.startswith("CTF"):
+                continue
+            if line == "":
+                continue
+            split_list = line.split(" ")
+
+            self.verbose("line splits: %s; %s" % (len(split_list), split_list))
+
+            playernumber = split_list[PLAYER].split(":")[0]
+            team = split_list[TEAM][5:]
+            kills = int(split_list[KILLS][6:])
+            deaths = int(split_list[DEATHS][7:])
+
+            self.verbose("Player %s Team %s kills %s deaths %s" % (playernumber, team, kills, deaths))
+
+            kdr = kills - (deaths / 2)
+            if team == "RED":
+                redteam.append((kdr, playernumber))
+                redkdr += kdr
+            elif team == "BLUE":
+                blueteam.append((kdr, playernumber))
+                bluekdr += kdr
+
+        if len(redteam) + len(blueteam) < 6:
+            client.message("Not enough players to perform swap safely")
+            return
+
+        redteam.sort()
+        blueteam.sort()
+
+        self.verbose(redteam)
+        self.verbose(blueteam)
+
+        if redScore > blueScore:
+            client1num = redteam[2][1]
+            client2num = blueteam[-2][1]
+        else:
+            client1num = blueteam[2][1]
+            client2num = redteam[-2][1]
+
+        # check if the first player exists. If none, exit.
+        client1 = self._adminPlugin.findClientPrompt(client1num, client)
+        if not client1:
+            client1num = redteam[3][1]
+            client1 = self._adminPlugin.findClientPrompt(client1num, client)
+            if not client1:
+                return
+
+        # if the specified player doesn't exist, exit.
+        client2 = self._adminPlugin.findClientPrompt(client2num, client)
+        if not client2:
+            client2num = blueteam[-3][1]
+            client2 = self._adminPlugin.findClientPrompt(client2num, client)
+            if not client2:
+                return
+
+        if client1.team == b3.TEAM_SPEC:
+            client.message("%s is a spectator! - Can't be swapped" % client1.name)
+            return
+
+        if client2.team == b3.TEAM_SPEC:
+            client.message("%s is a spectator! - Can't be swapped" % client2.name)
+            return
+
+        if client1.team == client2.team:
+            client.message("%s and %s are on the same team!" % (client1.name, client2.name))
+            return
+
+        client.message("swapping player number %s and %s" % (client1num, client2num))
+
+        # /rcon swap <clientA> <clientB>
+        self.console.write('swap %s %s' % (client1.cid, client2.cid))
+
+        # No need to send the message twice to the switching admin :-)
+
+        if client1 != client:
+            client1.message("^4You were swapped with %s by the admin" % client2.name)
+
+        if client2 != client:
+            client2.message("^4You were swapped with %s by the admin" % client1.name)
+
+        client.message("^3Successfully swapped %s and %s" % (client1.name, client2.name))
+
+    def cmd_paswap3(self, data, client, cmd=None):
+        """
+        Swap the third player on the winning team with the 2nd from bottom on the losing team.
+        """
+        # check the input
+        args = self._adminPlugin.parseUserCmd(data)
+
+        # get the team and points information
+        clients = self.console.clients.getList()
+        listplayers = self.console.write('players')
+        # output looks like
+        #Map: ut4_algiers\n
+        #Players: 4\n
+        #GameType: CTF\n
+        #Scores: R:2 B:4\n
+        #MatchMode: OFF\n
+        #WarmupPhase: NO\n
+        #GameTime: 01:12:00\n
+        #0:|RFA|Tutone TEAM:SPECTATOR KILLS:0 DEATHS:0 ASSISTS:0 PING:0 AUTH:--- IP:1.2.3.4:27960\n
+        #CTF: CAP:0 RET:0 KFC:0 STC:0 PRF:0\n
+        #1:Testing TEAM:BLUE KILLS:12 DEATHS:13 ASSISTS:5 PING:50 AUTH:--- IP:2.3.4.5:27960\n
+        #CTF: CAP:1 RET:0 KFC:0 STC:0 PRF:0\n
+        #22:i814them TEAM:RED KILLS:40 DEATHS:22 ASSISTS:16 PING:275 AUTH:i814them IP:9.88.77.66:27960\n
+        #CTF: CAP:0 RET:2 KFC:0 STC:0 PRF:0\n
+
+        # DEBUG
+        #listplayers = "Map: ut4_algiers\nPlayers: 4\nGameType: CTF\nScores: R:2 B:4\nMatchMode: OFF\nWarmupPhase: NO\nGameTime: 01:12:00\n0:|RFA|Tutone TEAM:SPECTATOR KILLS:0 DEATHS:0 ASSISTS:0 PING:0 AUTH:--- IP:1.2.3.4:27960\nCTF: CAP:0 RET:2 KFC:0 STC:0 PRF:0\n1:Testing TEAM:BLUE KILLS:12 DEATHS:13 ASSISTS:5 PING:50 AUTH:--- IP:2.3.4.5:27960\nCTF: CAP:0 RET:2 KFC:0 STC:0 PRF:0\n6:hate TEAM:BLUE KILLS:60 DEATHS:62 ASSISTS:16 PING:275 AUTH:--- IP:9.88.77.66:27960\nCTF: CAP:0 RET:2 KFC:0 STC:0 PRF:0\n7:something TEAM:BLUE KILLS:12 DEATHS:12 ASSISTS:16 PING:275 AUTH:--- IP:9.88.77.66:27960\nCTF: CAP:0 RET:2 KFC:0 STC:0 PRF:0\n9:jelly TEAM:BLUE KILLS:8 DEATHS:60 ASSISTS:16 PING:275 AUTH:--- IP:9.88.77.66:27960\nCTF: CAP:0 RET:2 KFC:0 STC:0 PRF:0\n10:love TEAM:RED KILLS:50 DEATHS:22 ASSISTS:16 PING:275 AUTH:--- IP:9.88.77.66:27960\nCTF: CAP:0 RET:2 KFC:0 STC:0 PRF:0\n12:killemall TEAM:RED KILLS:20 DEATHS:22 ASSISTS:16 PING:275 AUTH:--- IP:9.88.77.66:27960\nCTF: CAP:0 RET:2 KFC:0 STC:0 PRF:0\n22:i814them TEAM:RED KILLS:40 DEATHS:22 ASSISTS:16 PING:275 AUTH:i814them IP:9.88.77.66:27960\nCTF: CAP:0 RET:2 KFC:0 STC:0 PRF:0\n23:john TEAM:RED KILLS:4 DEATHS:2 ASSISTS:6 PING:275 AUTH:--- IP:9.88.77.66:27960\nCTF: CAP:0 RET:2 KFC:0 STC:0 PRF:0\n"
+
+        self.verbose("listplayers %s" % (listplayers))
+        lines = listplayers.split('\n')
+        SCORES = 3
+        FIRSTPLAYER = 7
+
+        REDSCORE = 1
+        BLUESCORE = 2
+
+        scoreLine = lines[SCORES].split(" ")
+        redScore = int(scoreLine[REDSCORE].split(":")[1])
+        blueScore = int(scoreLine[BLUESCORE].split(":")[1])
+
+        self.verbose("Red: %s, Blue %s" % (redScore, blueScore))
+
+        PLAYER = 0
+        TEAM = 1
+        KILLS = 2
+        DEATHS = 3
+        redteam = []
+        blueteam = []
+        redkdr = 0
+        bluekdr = 0
+        index = 0
+        for line in lines:
+            index = index + 1
+            if index < FIRSTPLAYER + 1:
+                continue
+            if line.startswith("CTF"):
+                continue
+            if line == "":
+                continue
+            split_list = line.split(" ")
+
+            self.verbose("line splits: %s; %s" % (len(split_list), split_list))
+
+            playernumber = split_list[PLAYER].split(":")[0]
+            team = split_list[TEAM][5:]
+            kills = int(split_list[KILLS][6:])
+            deaths = int(split_list[DEATHS][7:])
+
+            self.verbose("Player %s Team %s kills %s deaths %s" % (playernumber, team, kills, deaths))
+
+            kdr = kills - (deaths / 2)
+            if team == "RED":
+                redteam.append((kdr, playernumber))
+                redkdr += kdr
+            elif team == "BLUE":
+                blueteam.append((kdr, playernumber))
+                bluekdr += kdr
+
+        if len(redteam) + len(blueteam) < 8:
+            client.message("Not enough players to perform swap safely")
+            return
+
+        redteam.sort()
+        blueteam.sort()
+
+        self.verbose(redteam)
+        self.verbose(blueteam)
+
+        if redScore > blueScore:
+            client1num = redteam[3][1]
+            client2num = blueteam[-3][1]
+        else:
+            client1num = blueteam[3][1]
+            client2num = redteam[-3][1]
+
+        # check if the first player exists. If none, exit.
+        client1 = self._adminPlugin.findClientPrompt(client1num, client)
+        if not client1:
+            client1num = redteam[4][1]
+            client1 = self._adminPlugin.findClientPrompt(client1num, client)
+            if not client1:
+                return
+
+        # if the specified player doesn't exist, exit.
+        client2 = self._adminPlugin.findClientPrompt(client2num, client)
+        if not client2:
+            client2num = blueteam[-4][1]
+            client2 = self._adminPlugin.findClientPrompt(client2num, client)
+            if not client2:
+                return
+
+        if client1.team == b3.TEAM_SPEC:
+            client.message("%s is a spectator! - Can't be swapped" % client1.name)
+            return
+
+        if client2.team == b3.TEAM_SPEC:
+            client.message("%s is a spectator! - Can't be swapped" % client2.name)
+            return
+
+        if client1.team == client2.team:
+            client.message("%s and %s are on the same team!" % (client1.name, client2.name))
+            return
+
+        client.message("swapping player number %s and %s" % (client1num, client2num))
+
+        # /rcon swap <clientA> <clientB>
+        self.console.write('swap %s %s' % (client1.cid, client2.cid))
+
+        # No need to send the message twice to the switching admin :-)
+
+        if client1 != client:
+            client1.message("^4You were swapped with %s by the admin" % client2.name)
+
+        if client2 != client:
+            client2.message("^4You were swapped with %s by the admin" % client1.name)
+
+        client.message("^3Successfully swapped %s and %s" % (client1.name, client2.name))
+
     def cmd_pacaptain(self, data, client, cmd=None):
         """
         [<player>] - Set the given client as the captain for its team
@@ -586,18 +862,18 @@ class Poweradminurt43Plugin(Poweradminurt41Plugin):
             self._teamblue = 0
             
             data = self.console.write('players')
-			
+
             if "[connecting]" not in data:
 
                 for line in data.split('\n')[7:]:
                     if "TEAM:" in line:
-                        if  line.split(" ")[1].split(":")[0] == "TEAM":
+                        if line.split(" ")[1].split(":")[0] == "TEAM":
 
                             if line.split(" ")[1].split(":")[1] == "RED":
                                 self._teamred += 1
                             if line.split(" ")[1].split(":")[1] == "BLUE":
                                 self._teamblue += 1
-				
+
             else:
                 self._teamred = len(self.console.getCvar('g_redteamlist').getString())
                 self._teamblue = len(self.console.getCvar('g_blueteamlist').getString())
