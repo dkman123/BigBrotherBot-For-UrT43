@@ -23,15 +23,15 @@
 # ################################################################### #
 
 
-import os
-import re
-import sys
-import platform
+import os       # system os functions
+import re       # regular expressions
+import sys      # system functions
+import platform # like os
 import pkg_handler
-import traceback
-import time
+import traceback    # stack traces for exception logging
+import time     # time and sleep
 import signal
-import shutil
+import shutil   # high level file utilities
 
 from tempfile import TemporaryFile
 from ConfigParser import NoOptionError
@@ -171,7 +171,7 @@ def getPlatform():
         # Windows family
         return 'nt'
     elif sys.platform in ('darwin', 'mac'):
-        # OS X faimily
+        # OS X family
         return 'darwin'
     else:
         # Fallback linux distro
@@ -248,7 +248,7 @@ def getShortPath(filepath, decode=False, first_time=True):
 
 def loadParser(pname):
     """
-    Load the parser module given it's name.
+    Load the parser module given its name.
     :param pname: The parser name
     :return The parser module
     """
