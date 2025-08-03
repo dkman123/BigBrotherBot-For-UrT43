@@ -82,6 +82,8 @@ class MapconfigPlugin(b3.plugin.Plugin):
 	random_nextmap = 0
 	hopper_fileName = ""
 	mapconfig_enabled = 1
+	smokefree = 0
+	tacfree = 0
 
 	# variables held to reduce processing overhead
 	_up_mapname = ""
@@ -92,6 +94,9 @@ class MapconfigPlugin(b3.plugin.Plugin):
 	rnm_history = []
 
 	built_in_maps = []
+
+	SMOKE = "Q"  # the gear character for smoke grenades
+	NVG = "S"  # the gear character for tacs/nvg/night vision goggles
 
 	####################################################################################################################
 	#                                                                                                                  #
@@ -242,6 +247,18 @@ class MapconfigPlugin(b3.plugin.Plugin):
 
 		self.debug('mapconfig_enabled : %s' % self.mapconfig_enabled)
 
+		try:
+			self.smokefree = self.config.getint('settings', 'smokefree')
+		except (NoOptionError, ValueError):
+			self.smokefree = 0
+		self.debug('smokefree : %s' % self.smokefree)
+
+		try:
+			self.tacfree = self.config.getint('settings', 'tacfree')
+		except (NoOptionError, ValueError):
+			self.tacfree = 0
+		self.debug('tacfree : %s' % self.tacfree)
+
 	####################################################################################################################
 	#                                                                                                                  #
 	#   EVENTS                                                                                                         #
@@ -355,6 +372,18 @@ class MapconfigPlugin(b3.plugin.Plugin):
 		# if mapconfig["id"] > 0:
 		# then rcon to set game values
 		# self.debug('setting capturelimit %s, g_gear %s' % (mapconfig["capturelimit"], mapconfig["g_gear"]))
+
+		if self.smokefree == 1:
+			if mapconfig["g_gear"] == "0" or mapconfig["g_gear"] == "":
+				mapconfig["g_gear"] = self.SMOKE
+			else:
+				mapconfig["g_gear"] += self.SMOKE
+
+		if self.tacfree == 1:
+			if mapconfig["g_gear"] == "0" or mapconfig["g_gear"] == "":
+				mapconfig["g_gear"] = self.NVG
+			else:
+				mapconfig["g_gear"] += self.NVG
 
 		# NOTE: if you add fields then add them here
 		self.console.write('capturelimit %s ' % (mapconfig["capturelimit"]))
@@ -590,6 +619,11 @@ class MapconfigPlugin(b3.plugin.Plugin):
 		self._startmessage = ('Map Start Message: ^8%s^7; ^2%s ^7Caps; ^2%s^7; %s gravity^7; %s' % (
 			startmessage, caps, overtime, gravity, ff))
 
+		if self.smokefree == 1:
+			self._startmessage += "; ^2SmokeFree"
+		if self.tacfree == 1:
+			self._startmessage += "; ^2TacFree"
+
 		self.debug("StartMessage set to %s" % self._startmessage)
 
 	def cmd_randomnextmap(self, data=None, client=None, cmd=None):
@@ -655,7 +689,7 @@ class MapconfigPlugin(b3.plugin.Plugin):
 
 		# if nothing was entered write the param info
 		if not data:
-			client.message('^7Current SetRandomNextMap %s, try !help setrandomnextmap for more' % self.random_nextmap)
+			client.message('^7Current RandomNextMap %s, try !help setrandomnextmap for more' % self.random_nextmap)
 			return
 
 		# read the data
@@ -700,3 +734,49 @@ class MapconfigPlugin(b3.plugin.Plugin):
 		else:
 			self.mapconfig_enabled = 0
 			cmd.sayLoudOrPM(client, "mapconfig_enabled turned OFF")
+
+	def cmd_setsmokefree(self, data=None, client=None, cmd=None):
+		"""
+		<on|off or 1|0> Set the smokefree config option. Smoking is bad for you.
+		"""
+		# self.debug("smokefree entered")
+
+		# if nothing was entered write the param info
+		if not data:
+			client.message('^7Current SmokeFree %s, try !help setsmokefree for more' % self.smokefree)
+			return
+
+		# read the data
+		if not data or data not in ('on', 'off', '1', '0'):
+			client.message('^7Invalid or missing data, try !help setsmokefree')
+			return
+
+		if data == 'on' or data == '1':
+			self.smokefree = 1
+			cmd.sayLoudOrPM(client, "smokefree turned ON. It will activate next map, or run mapconfig.")
+		else:
+			self.smokefree = 0
+			cmd.sayLoudOrPM(client, "smokefree turned OFF. It will activate next map, or run mapconfig.")
+
+	def cmd_settacfree(self, data=None, client=None, cmd=None):
+		"""
+		<on|off or 1|0> Set the tacfree config option. NVG/Night Vision Goggles aka Tacs.
+		"""
+		# self.debug("tacfree entered")
+
+		# if nothing was entered write the param info
+		if not data:
+			client.message('^7Current TacFree %s, try !help settacfree for more' % self.tacfree)
+			return
+
+		# read the data
+		if not data or data not in ('on', 'off', '1', '0'):
+			client.message('^7Invalid or missing data, try !help settacfree')
+			return
+
+		if data == 'on' or data == '1':
+			self.tacfree = 1
+			cmd.sayLoudOrPM(client, "tacfree turned ON. It will activate next map, or run mapconfig.")
+		else:
+			self.tacfree = 0
+			cmd.sayLoudOrPM(client, "tacfree turned OFF. It will activate next map, or run mapconfig.")
