@@ -1167,7 +1167,7 @@ class AdminPlugin(b3.plugin.Plugin):
 
         duration = self.warnKickDuration(sclient)
         # self.debug("warnKick: client %s; duration %s" % (sclient.exactName, duration))
-        if duration > 0:            
+        if duration > 0:
             # if reason contains with "Rule #" and client level mod+ (mod = 20) then exit
             if "Rule #" in warn.reason and client.maxLevel >= 20:
                 # whisper the message to them
